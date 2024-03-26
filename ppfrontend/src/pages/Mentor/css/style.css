@@ -1,0 +1,11 @@
+.bgimg {
+  background-image: url("/img/2.jpg");
+  background-size: cover;
+  background-repeat: no-repeat;
+  height: 100%;
+}
+
+body {
+  background-color: #eeebdd !important;
+  font-family: "Cascadia", sans-serif !important;
+}
