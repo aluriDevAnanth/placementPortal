@@ -7,6 +7,9 @@ const eventScheme = new mongoose.Schema({
   endTime: String,
   rec: String,
   students: [],
+  attendance: {
+    EventDate: [String]
+  }
 });
 
 const event = mongoose.model('events', eventScheme);

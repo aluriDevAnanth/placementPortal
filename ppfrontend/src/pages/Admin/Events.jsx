@@ -1,22 +1,22 @@
 import React, { useContext, useEffect, useState } from 'react';
 import { parseISO, format } from 'date-fns';
 import { FaRegTrashAlt } from "react-icons/fa";
+import { Link } from 'react-router-dom';
 
 import AuthCon from '../../context/AuthPro';
 import Sidebar from './components/Sidebar';
-
 import SetEvent from './SetEvent';
 
 export default function Events() {
   const { auth } = useContext(AuthCon);
   const [showSetEvent, setShowSetEvent] = useState(false)
-  const [events, setEvents] = useState(false)
+  const [events, setEvents] = useState([]);
 
   const handleSetEvent = () => {
     setShowSetEvent(!showSetEvent)
   }
 
-  async function fetchEvents(e) {
+  async function fetchEvents() {
     const response = await fetch('http://localhost:3000/api/admin/getEvents', {
       method: "GET",
       headers: {
@@ -25,28 +25,23 @@ export default function Events() {
       },
     });
     const res = await response.json();
-    setEvents(res.data)
-    console.log(res)
+    setEvents(res.data || []);
   }
 
   useEffect(() => {
     fetchEvents();
-  }, [])
+  }, []);
 
-  async function deleteEvent(e) {
-    const id = e.currentTarget.value;
-    const response = await fetch(`http://localhost:3000/api/admin/deleteEvent/${e.currentTarget.value}`, {
+  async function deleteEvent(id) {
+    await fetch(`http://localhost:3000/api/admin/deleteEvent/${id}`, {
       method: "DELETE",
       headers: {
         "Content-Type": "application/json",
         "Authorization": `Bearer ${auth}`,
       },
     });
-    const res = await response.json();
-    const qq = events.filter(q => q._id !== id)
-    setEvents(qq)
+    setEvents(events.filter(event => event._id !== id));
   }
-
 
   return (
     <div>
@@ -57,7 +52,7 @@ export default function Events() {
         <div className='ms-3 me-3 container w-100'>
           <div className='d-flex'>
             <div>
-              <button onClick={handleSetEvent} className='btn btn-primary' >Add Event</button>
+              <button onClick={handleSetEvent} className='btn btn-primary'>Add Event</button>
             </div>
             {showSetEvent && <SetEvent fetchEvents={fetchEvents} setShowSetEvent={setShowSetEvent} />}
           </div>
@@ -69,7 +64,7 @@ export default function Events() {
           <thead>
             <tr className='text-center'>
               <th>Name</th>
-              <th>Des</th>
+              <th>Description</th>
               <th>Start Time</th>
               <th>End Time</th>
               <th>Rec</th>
@@ -79,26 +74,31 @@ export default function Events() {
             </tr>
           </thead>
           <tbody>
-            {events && events.map((q, i) => {
-              return <tr style={{ opacity: q.isExp ? 0.5 : 1 }} className='text-center' key={i}>
-                <th>{q.name}</th>
-                <th>{q.des}</th>
-                <th>{format(parseISO(q.startTime), "dd-MM-yyyy hh:mm a")}</th>
-                <th>{format(parseISO(q.endTime), "dd-MM-yyyy hh:mm a")}</th>
-                <th>{q.rec}</th>
-                <th>{q.isExp && <h6> <span className="badge text-bg-danger">Expired</span></h6>
-                } {q.isHap && <h6> <span className="badge text-bg-success">Happenning Now</span></h6>
-                  }</th>
-                <th>{q.students.length}</th>
-                <th className='p-2'>
-                  <button type="button" onClick={deleteEvent} className="btn" value={q._id}>
-                    <FaRegTrashAlt style={{ color: 'red' }} />
+            {events.map((event, index) => (
+              <tr key={index} className='text-center' style={{ opacity: event.isExp ? 0.5 : 1 }}>
+                <td>{event.name}</td>
+                <td>{event.des}</td>
+                <td>{format(parseISO(event.startTime), "dd-MM-yyyy hh:mm a")}</td>
+                <td>{format(parseISO(event.endTime), "dd-MM-yyyy hh:mm a")}</td>
+                <td>{event.rec}</td>
+                <td>
+                  {event.isExp && <span className="badge bg-danger text-white">Expired</span>}
+                  {event.isHap && <span className="badge bg-success text-white">Happening Now</span>}
+                </td>
+                <td>{event.students.length}</td>
+                <td className='p-2'>
+                  {!event.isExp ? (
+                    <Link to={`/currevent/${event._id}`} className="btn btn-secondary me-2">Details</Link>
+                  ) : (
+                    <span className="btn btn-secondary me-2 disabled">Details</span>
+                  )}
+                  <button type="button" onClick={() => deleteEvent(event._id)} className="btn btn-danger">
+                    <FaRegTrashAlt />
                   </button>
-                </th>
+                </td>
               </tr>
-            })}
+            ))}
           </tbody>
-
         </table>
       </div>
     </div>

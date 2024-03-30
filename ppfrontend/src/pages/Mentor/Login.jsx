@@ -48,6 +48,31 @@ export default function Login() {
         console.log(id)
     }
 
+    async function handleForgotPassword(e) {
+        e.preventDefault();
+
+        const formData = new FormData(e.currentTarget);
+        let q = {};
+
+        for (let [key, value] of formData.entries()) {
+            q[key] = value;
+        }
+
+        const { email } = q; console.log(q);
+
+        const response = await fetch('http://localhost:3000/api/sendOTP', {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json",
+            },
+            body: JSON.stringify({ username: email }),
+        });
+
+        const res = await response.json();
+        console.log(res);
+
+    }
+
     return (
         <div className='container-fluid bgimg'>
             <div className="col-6 col-sm-1 col-md-1">
@@ -78,14 +103,10 @@ export default function Login() {
                         </div>
 
                     </form>}
-                    {show == 2 && <form onSubmit={handlelogin}>
+                    {show == 2 && <form onSubmit={handleForgotPassword}>
                         <div className="form-floating mb-3">
-                            <input name='username' className="form-control" id="floatingInput" placeholder="name@example.com" />
-                            <label htmlFor="floatingInput">Application Number/ Registration Number</label>
-                        </div>
-                        <div className="form-floating mb-3">
-                            <input name='password' type="password" className="form-control" id="floatingPassword" placeholder="Password" />
-                            <label htmlFor="floatingPassword">Password</label>
+                            <input name='email' className="form-control" id="floatingInput" placeholder="name@example.com" />
+                            <label htmlFor="floatingInput">Enter Email for OTP</label>
                         </div>
                         <div className='d-flex'>
                             <div>

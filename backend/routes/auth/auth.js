@@ -3,15 +3,28 @@ const router = express.Router()
 const md5 = require('md5');
 var isemail = require('isemail');
 var jwt = require('jsonwebtoken');
+var nodemailer = require('nodemailer');
+const crypto = require('crypto');
+require('dotenv').config();
+
 
 // Models
 const LogDet = require('../../models/user/LogDet');
 const Student = require('../../models/user/Student');
 const Parent = require('../../models/user/Parent');
 const Mentor = require('../../models/user/Mentor')
+const ResetPsd = require('../../models/user/ResetPsd')
 
 //use
 router.use(express.json());
+
+var transporter = nodemailer.createTransport({
+    service: 'gmail',
+    auth: {
+        user: process.env.EMAIL_ADDRESS,
+        pass: process.env.EMAIL_PASSWORD
+    }
+});
 
 function createJwt(username, role) {
     const payload = { username, role };
@@ -21,6 +34,19 @@ function createJwt(username, role) {
 function validateNumber(input) {
     var re = /^(\d{3})[- ]?(\d{3})[- ]?(\d{4})$/
     return re.test(input)
+}
+
+function generateOTP(length) {
+    const chars = '0123456789';
+    const charsLength = chars.length;
+    let otp = '';
+
+    for (let i = 0; i < length; i++) {
+        const randomIndex = crypto.randomInt(charsLength);
+        otp += chars[randomIndex];
+    }
+
+    return otp;
 }
 
 router.get('/auth', async (req, res) => {
@@ -95,19 +121,71 @@ router.post('/login', async (req, res) => {
                 res.status(404).json({ success: false, error: "Wrong Username or Password" });
             }
 
-        }
-
-        if (validateNumber(username)) {
+        } else if (validateNumber(username)) {
             console.log(11);
             const student = await Student.findOne({ phone: username });
             if (student) {
                 const jwt = createJwt(student.username, student.role)
+                //console.log(student);
                 res.json({ success: true, user: student, jwt })
             }
             else res.status(404).json({ success: false, error: "Wrong Phone number" });
 
         } else {
             res.status(400).json({ success: false, error: "Invalid username format" });
+        }
+    } catch (error) {
+        console.log("lll", error);
+        res.status(500).json({ success: false, error });
+    }
+});
+
+router.post('/sendOTP', async (req, res) => {
+    try {
+        const { username } = req.body;
+        const student = await LogDet.findOne({ username });
+        const parent = await Parent.findOne({ rollno: username });
+        const teacher = await LogDet.findOne({ username });
+
+        if (student || parent || teacher || true) {
+            const otp = generateOTP(6);
+            var mailOptions = {
+                from: 'qqq01012024@gmail.com',
+                to: username,
+                subject: 'Password Reset OTP',
+                text: `otp for resetting password: ${otp}`
+            };
+            transporter.sendMail(mailOptions, async function (error, info) {
+                if (error) {
+                    console.log(error);
+                    res.status(400).json({ success: false, error });
+                } else {
+                    //console.log('Email sent: ' + info.response);
+                    let a = await ResetPsd.create({ rollno: username, code: otp })
+                    res.json({ success: true, data: { a }, message: "sent OTP" });
+                }
+            });
+
+        } else {
+            res.status(400).json({ success: false, error: "Invalid email" });
+        }
+    } catch (error) {
+        console.log("lll", error);
+        res.status(500).json({ success: false, error });
+    }
+});
+
+router.post('/forgotPassword', async (req, res) => {
+    try {
+        const { username } = req.body;
+        console.log(username)
+        const student = await LogDet.findOne({ username });
+        const parent = await Parent.findOne({ rollno: username });
+        const teacher = await LogDet.findOne({ username });
+        if (student) {
+
+        } else {
+            res.status(400).json({ success: false, error: "Invalid email" });
         }
     } catch (error) {
         console.log("lll", error);
