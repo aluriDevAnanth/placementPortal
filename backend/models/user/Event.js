@@ -10,6 +10,8 @@ const eventScheme = new mongoose.Schema({
   attendance: {
     EventDate: [String]
   }
+}, {
+  timestamps: true
 });
 
 const event = mongoose.model('events', eventScheme);

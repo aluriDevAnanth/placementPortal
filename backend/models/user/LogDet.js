@@ -5,6 +5,8 @@ const logDetSchema = new mongoose.Schema({
     username: String,
     password: String,
     role: String
+}, {
+    timestamps: true
 });
 
 const LogDet = mongoose.model('login_details', logDetSchema);

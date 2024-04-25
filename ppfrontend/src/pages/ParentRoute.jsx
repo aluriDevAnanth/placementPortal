@@ -1,0 +1,44 @@
+import { useContext, useEffect, useState } from 'react'
+import { Routes, Route } from 'react-router-dom'
+
+import AuthCon from '../context/AuthPro'
+
+/* Parent */
+import ParentHeader from './Parent/components/ParentHeader'
+import ParentHome from './Parent/ParentHome'
+import ParentAttendance from './Parent/ParentAttendance'
+import ParentTestSchedule from './Parent/ParentTestSchedule'
+import ParentCompaniesCorner from './Parent/ParentCompaniesCorner'
+import ParentPlacementCorner from './Parent/ParentPlacementCorner'
+import MentorDetails from './Parent/MentorDetails'
+import ParentContactUs from './Parent/ParentContactUs'
+import ParentSettings from './Parent/ParentSettings'
+import ParentTestResult from './Parent/ParentTestResult'
+/* Parent */
+
+export default function MentorRoute() {
+  const { auth, user } = useContext(AuthCon)
+
+  return (
+    <>
+      {auth && user && user.role === 'parent' && <ParentHeader />}
+      {
+        (auth && user && user.role === 'parent') ?
+          <>
+            {<Routes>
+              <Route path='/' element={<ParentHome />} />
+              <Route path='/attendence' element={<ParentAttendance />} />
+              <Route path='/testschedule' element={<ParentTestSchedule />} />
+              <Route path='/companiescorner' element={<ParentCompaniesCorner />} />
+              <Route path='/placementcorner' element={<ParentPlacementCorner />} />
+              <Route path='/mentordetails' element={<MentorDetails />} />
+              <Route path='/contactus' element={<ParentContactUs />} />
+              <Route path='/settings' element={<ParentSettings />} />
+              <Route path='/testresult' element={<ParentTestResult />} />
+            </Routes>}
+          </>
+          : <></>
+      }
+    </>
+  )
+}

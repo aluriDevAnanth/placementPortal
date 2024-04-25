@@ -32,7 +32,7 @@ export default function Header() {
                 {user.name}
               </button>
               <ul className="dropdown-menu">
-                <li><Link className="dropdown-item" to="/deansettings">Settings</Link></li>
+                <li><Link className="dropdown-item" to="/settings">Settings</Link></li>
                 <li><button onClick={handleLogout} className="dropdown-item" >Logout</button></li>
               </ul>
             </div>

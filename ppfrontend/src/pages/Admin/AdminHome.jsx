@@ -4,7 +4,7 @@ import Sidebar from './components/Sidebar'
 
 export default function AdminHome() {
   return (
-    <>
+    <div className='h-100'>
       <div className='d-flex'>
         <div>
           <Sidebar />
@@ -15,6 +15,6 @@ export default function AdminHome() {
           </div>
         </div>
       </div>
-    </>
+    </div>
   )
 }

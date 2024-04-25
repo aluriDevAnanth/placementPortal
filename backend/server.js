@@ -4,6 +4,8 @@ const teacherRou = require('./routes/user/mentorRou')
 const DeanRou = require('./routes/user/DeanRou')
 const HODRou = require('./routes/user/HODRou')
 const AdminRou = require('./routes/user/AdminRou')
+const StudentRou = require('./routes/user/StudentRou')
+const ParentRou = require('./routes/user/ParentRou')
 const mongoose = require('mongoose');
 var cors = require('cors')
 
@@ -18,6 +20,8 @@ app.use('/api/mentor', teacherRou);
 app.use('/api/dean', DeanRou);
 app.use('/api/hod', HODRou);
 app.use('/api/admin', AdminRou);
+app.use('/api/student', StudentRou);
+app.use('/api/parent', ParentRou);
 
 app.get('/', (req, res) => {
     res.send('<p>qwerty</p>')

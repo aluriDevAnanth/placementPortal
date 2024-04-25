@@ -93,6 +93,7 @@ export default function CompaniesCorner() {
                         <th>CTC</th>
                         <th>Category</th>
                         <th>Date of visit</th>
+                        <th>No Of Placed</th>
                       </tr>
                     </thead>
                     <tbody>
@@ -103,6 +104,7 @@ export default function CompaniesCorner() {
                             <th>{q.CTC}</th>
                             <th> {q.category} </th>
                             <th> {q.dateofvisit}  </th>
+                            <th> {q.offers}  </th>
                           </tr>
                         })
                       }

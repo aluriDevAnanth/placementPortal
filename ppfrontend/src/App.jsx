@@ -7,11 +7,15 @@ import DeanRoute from './pages/DeanRoute'
 import MentorRoute from './pages/MentorRoute'
 import HODRoute from './pages/HODRoute'
 import AdminRoute from './pages/AdminRoute'
+import StudentRoute from './pages/StudentRoute'
+import ParentRoute from './pages/ParentRoute'
 
 import { HODPro } from './context/HODPro'
 import { DeanPro } from './context/DeanPro'
 import { MentorPro } from './context/MentorPro'
 import { AdminPro } from './context/AdminPro'
+import { StudentPro } from './context/StudentPro'
+import { ParentPro } from './context/ParentPro'
 import AuthCon from './context/AuthPro'
 
 function App() {
@@ -26,6 +30,16 @@ function App() {
 
   return (
     <>
+      {user && user.role === 'student' &&
+        <StudentPro>
+          {console.log("StudentRoute", user)}
+          <StudentRoute />
+        </StudentPro>}
+      {user && user.role === 'parent' &&
+        <ParentPro>
+          {console.log("ParentRoute", user)}
+          <ParentRoute />
+        </ParentPro>}
       {user && user.role === 'mentor' &&
         <MentorPro>
           {console.log("MentorRoute", user)}

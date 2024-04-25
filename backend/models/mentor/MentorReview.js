@@ -10,7 +10,7 @@ const mentorReviewSchema = new mongoose.Schema({
   contactperson: String,
   modeofcom: String,
   menreview: String,
-  uploadeddate: String,
+  uploadeddate: Date,
 }, {
   timestamps: true,
 });

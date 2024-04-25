@@ -61,32 +61,26 @@ router.get('/auth', async (req, res) => {
             const { username, role } = jwt.verify(token, 'qwertyuiop');
             if (role === "mentor") {
                 const teacher = await Mentor.findOne({ email: username })
-                res.json({
-                    success: true,
-                    data: { user: teacher, role }
-                });
+                res.json({ success: true, data: { user: teacher, role } });
+            } else if (role === "student") {
+                const student = await Student.findOne({ rollno: username })
+                res.json({ success: true, data: { user: student, role } });
             } else if (role === 'dean') {
                 const dean = await Mentor.findOne({ email: username })
-                res.json({
-                    success: true,
-                    data: { user: dean, role }
-                });
+                res.json({ success: true, data: { user: dean, role } });
             } else if (role === 'admin') {
                 const admin = await Mentor.findOne({ email: username })
-                res.json({
-                    success: true,
-                    data: { user: admin, role }
-                });
+                res.json({ success: true, data: { user: admin, role } });
+            } else if (role === 'parent') {
+                const parent = await Student.findOne({ rollno: username })
+                res.json({ success: true, data: { user: parent, role } });
             }
         } catch (error) {
-
+            console.log(error);
         }
 
     } else {
-        res.json({
-            success: false,
-            error: 'error'
-        });
+        res.json({ success: false, error: 'error' });
     }
 });
 
@@ -94,18 +88,15 @@ router.post('/login', async (req, res) => {
     try {
         const { username, password } = req.body;
         const pass = md5(password);
-        console.log(username, password)
         if (username.substr(0, 2) === "AP") {
             const student = await LogDet.findOne({ username });
             const parent = await Parent.findOne({ rollno: username });
             if (student && pass === student.password) {
                 const jwt = createJwt(student.username, student.role)
-                res.json({ user: student, jwt })
-            } else if (parent && pass === student.password) {
-                if (pass === parent.psd) {
-                    const jwt = createJwt(parent.username, 'parent')
-                    res.json({ user: parent, jwt })
-                }
+                res.json({ success: true, user: student, jwt })
+            } else if (parent && pass === parent.psd) {
+                const jwt = createJwt(parent.rollno, 'parent')
+                res.json({ success: true, user: { ...parent, role: "parent" }, jwt })
             }
             else res.status(404).json({ success: false, error: "Wrong Username or Password" });
 
@@ -114,7 +105,6 @@ router.post('/login', async (req, res) => {
             if (teacher && pass === teacher.password) {
                 const user = await Mentor.findOne({ email: username })
                 const jwt = createJwt(teacher.username, teacher.role)
-                console.log(user)
                 res.json({ success: true, user, jwt })
             }
             else {
@@ -122,11 +112,9 @@ router.post('/login', async (req, res) => {
             }
 
         } else if (validateNumber(username)) {
-            console.log(11);
             const student = await Student.findOne({ phone: username });
             if (student) {
                 const jwt = createJwt(student.username, student.role)
-                //console.log(student);
                 res.json({ success: true, user: student, jwt })
             }
             else res.status(404).json({ success: false, error: "Wrong Phone number" });
@@ -160,7 +148,6 @@ router.post('/sendOTP', async (req, res) => {
                     console.log(error);
                     res.status(400).json({ success: false, error });
                 } else {
-                    //console.log('Email sent: ' + info.response);
                     let a = await ResetPsd.create({ rollno: username, code: otp })
                     res.json({ success: true, data: { a }, message: "sent OTP" });
                 }
@@ -178,7 +165,6 @@ router.post('/sendOTP', async (req, res) => {
 router.post('/forgotPassword', async (req, res) => {
     try {
         const { username } = req.body;
-        console.log(username)
         const student = await LogDet.findOne({ username });
         const parent = await Parent.findOne({ rollno: username });
         const teacher = await LogDet.findOne({ username });

@@ -12,6 +12,8 @@ const studentSchema = new mongoose.Schema({
   branch: String,
   course: String,
   batch: String,
+}, {
+  timestamps: true
 });
 
 const Student = mongoose.model('studentlist', studentSchema);

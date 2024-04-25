@@ -63,7 +63,7 @@ export default function Attendence() {
 						<div className="">
 							<Sidebar />
 						</div>
-						{students !== null ? (
+						{students ? (
 							<div className="flex-fill ms-3 border-primary me-3">
 								<ul className="list-group">
 									{students.map((q, i) => {

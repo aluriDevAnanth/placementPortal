@@ -3,6 +3,7 @@ import Sidebar from "./components/Sidebar";
 import AuthCon from "../../context/AuthPro";
 import MentorCon from "../../context/MentorPro";
 import EditFeedback from "./components/EditFeedback";
+import { isAfter, parseISO, format, addDays } from 'date-fns'
 
 export default function MentorFeedback() {
   const { user, auth } = useContext(AuthCon);
@@ -295,9 +296,9 @@ export default function MentorFeedback() {
                         <td>{q.contactperson}</td>
                         <td>{q.modeofcom}</td>
                         <td>{q.menreview}</td>
-                        <td>{q.uploadeddate}</td>
+                        {q.uploadeddate ? <td>{format(parseISO(q.uploadeddate), 'yyyy-MM-dd')}</td> : <td></td>}
                         <td>
-                          <button data-bs-toggle="modal" data-bs-target="#exampleModal" onClick={() => { setEdit(q); }} style={mystyle} className="btn" type="submit" id="edit" name="edit" value={q._id}>Edit</button>
+                          <button disabled={isAfter(new Date(), addDays(q.uploadeddate, 1))} data-bs-toggle="modal" data-bs-target="#exampleModal" onClick={() => { setEdit(q); }} style={mystyle} className="btn" type="submit" id="edit" name="edit" value={q._id}>Edit</button>
                         </td>
                       </tr>
                     })

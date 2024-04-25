@@ -14,6 +14,7 @@ import MenteesMail from './Mentor/MenteesMail'
 import CompaniesCorner from './Mentor/CompaniesCorner'
 import MentorSettings from './Mentor/MentorSettings'
 import MentorHome from './Mentor/MentorHome'
+import PlacementCorner from './Mentor/PlacementCorner'
 /* Mentor */
 
 export default function MentorRoute() {
@@ -35,6 +36,7 @@ export default function MentorRoute() {
             <Route path='/menteesmail' element={<MenteesMail />} />
             <Route path='/companiescorner' element={<CompaniesCorner />} />
             <Route path='/settings' element={<MentorSettings />} />
+            <Route path='/placementcorner' element={<PlacementCorner />} />
           </Routes>
         )
       }

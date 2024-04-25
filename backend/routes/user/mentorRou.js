@@ -14,6 +14,7 @@ const Att = require('../../models/user/Att')
 const Schedule = require('../../models/user/Schedule')
 const PlacementCompany = require('../../models/user/PlacementCompany')
 const MentorReview = require('../../models/mentor/MentorReview')
+const PlacementCorner = require('../../models/user/PlacementCorner')
 
 //use
 router.use(express.json());
@@ -207,8 +208,8 @@ router.get('/getCom/:year', async (req, res) => {
 
     if (token) {
         const { username, role } = jwt.verify(token, 'qwertyuiop');
-        if (role === "mentor") {
-            //console.log(req.params.year)
+        if (role === "mentor" || role === "parent") {
+            console.log(req.params.year)
             const com = await PlacementCompany.find({ batch: req.params.year })
             res.json({
                 success: true,
@@ -258,11 +259,10 @@ router.post('/chgnPwd', async (req, res) => {
     if (authHeader !== undefined) {
         token = authHeader.split(" ")[1];
     }
-    //console.log(1)
     if (token) {
         const { username, role } = jwt.verify(token, 'qwertyuiop');
-        //console.log(username, role)
-        if (role === "mentor") {
+        console.log(username, role, req.body)
+        if (role === "mentor" || role === "admin") {
             let q = await LogDet.findOneAndUpdate({ username: username }, {
                 password: md5(req.body.pass)
             }, { new: true });
@@ -304,6 +304,111 @@ router.get('/getYears', async (req, res) => {
         res.json({ success: false, error: 'auth failed' });
     }
 
+});
+
+router.post('/createPlacement', async (req, res) => {
+    try {
+        const com = req.body;
+        const data = await PlacementCorner.create(com);
+        res.json({ success: true, data })
+    } catch (error) {
+        console.log(error);
+    }
+})
+
+router.get('/getPlaceCom/:year', async (req, res) => {
+    let token;
+    const authHeader = req.headers["authorization"];
+    if (authHeader !== undefined) {
+        token = authHeader.split(" ")[1];
+    }
+
+    if (token) {
+        const { username, role } = jwt.verify(token, 'qwertyuiop');
+        if (role === "mentor") {
+            const com = await PlacementCorner.find({ batch: req.params.year })
+            res.json({
+                success: true,
+                data: com
+            });
+        }
+    } else {
+        res.json({
+            success: false,
+            error: 'error'
+        });
+    }
+})
+
+router.get('/getAllStu/:year', async (req, res) => {
+    let token;
+    const authHeader = req.headers["authorization"];
+    if (authHeader !== undefined) {
+        token = authHeader.split(" ")[1];
+    }
+
+    if (token) {
+        const { username, role } = jwt.verify(token, 'qwertyuiop');
+        if (role === "mentor") {
+            const stu = await Student.find({ batch: req.params.year })
+            res.json({
+                success: true,
+                data: stu
+            });
+        }
+    } else {
+        res.json({
+            success: false,
+            error: 'error'
+        });
+    }
+})
+
+router.post('/getStudentPlacementProgress/:year', async (req, res) => {
+    try {
+        const { rollno } = req.body; const { year } = req.params;
+
+        let eligibleCompany = {}; let appliedCompany = {};
+        await Promise.all(rollno.map(async (no) => {
+            let qqq = await PlacementCorner.find({ eligibleStudents: no, batch: year }, { name: 1, _id: 0 });
+            qqq = qqq.map(item => item.name);
+            eligibleCompany[no] = qqq
+        }));
+
+        await Promise.all(rollno.map(async (no) => {
+            let qqq = await PlacementCorner.find({ appliedStudents: no, batch: year }, { name: 1, _id: 0 });
+            qqq = qqq.map(item => item.name);
+            appliedCompany[no] = qqq
+        }));
+
+        let stages = {}; let placed = {};
+
+        await Promise.all(rollno.map(async (no) => {
+            let [ot, gd, inter, hr, other, p] = await Promise.all([
+                PlacementCorner.find({ "stages.onlineTest": no, batch: year }, { name: 1, _id: 0 }),
+                PlacementCorner.find({ "stages.GD": no, batch: year }, { name: 1, _id: 0 }),
+                PlacementCorner.find({ "stages.interview": no, batch: year }, { name: 1, _id: 0 }),
+                PlacementCorner.find({ "stages.HR": no, batch: year }, { name: 1, _id: 0 }),
+                PlacementCorner.find({ "stages.otherStages": no, batch: year }, { name: 1, _id: 0 }),
+                PlacementCorner.find({ "placedStudents": no, batch: year }, { name: 1, CTC: 1, _id: 0 })
+            ]);
+
+            ot = ot.map(item => item.name);
+            inter = inter.map(item => item.name);
+            gd = gd.map(item => item.name);
+            hr = hr.map(item => item.name);
+            other = other.map(item => item.name);
+
+            placed[no] = p;
+            stages[no] = { ot, gd, inter, hr, other };
+            //console.log(ot, gd, inter, hr, other);
+        }));
+
+        res.json({ success: true, data: { eligibleCompany, appliedCompany, stages, placed } });
+    } catch (error) {
+        console.log(error);
+        res.status(500).json({ success: false, message: 'Internal server error' });
+    }
 });
 
 module.exports = router;

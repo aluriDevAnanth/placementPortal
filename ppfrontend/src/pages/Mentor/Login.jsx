@@ -32,10 +32,9 @@ export default function Login() {
         const res = await response.json();
         console.log(res);
         if (res.success) {
-            setUser(res.user);
             Cookies.set('token', res.jwt, { expires: 3 })
             setAuth(Cookies.get("token"))
-            navi('/');
+            location.reload();
         } else {
             setErr(res.error)
         }

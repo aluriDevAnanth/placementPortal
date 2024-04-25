@@ -5,7 +5,7 @@ const MentorCon = createContext({});
 
 export function MentorPro({ children }) {
   const years = ["2018", "2019"]
-  const [year, setYear] = useState();
+  const [year, setYear] = useState({ curr: years.at(-1), years });
   const [students, setStudents] = useState()
   const { auth } = useContext(AuthCon)
 
@@ -35,7 +35,6 @@ export function MentorPro({ children }) {
     });
     const res1 = await response1.json();
     setStudents(res1.data.studentList)
-    //console.log(students)
   }
 
   useEffect(() => {
@@ -48,12 +47,11 @@ export function MentorPro({ children }) {
   useEffect(() => {
     if (auth && year) {
       fetchStudents();
-      //console.log(year.curr);
     }
   }, [year, auth])
 
   return (
-    <MentorCon.Provider value={{ students, setStudents, setYear, year }}>{children}</MentorCon.Provider>
+    <MentorCon.Provider value={{ students, setYear, year }}>{children}</MentorCon.Provider>
   );
 }
 

@@ -9,9 +9,9 @@ const mentorSchema = new mongoose.Schema({
     "dept": String,
     "phoneno": String,
     "role": String,
+}, {
+    timestamps: true
 });
-
-
 
 const Mentor = mongoose.model('mentorinfos', mentorSchema);
 

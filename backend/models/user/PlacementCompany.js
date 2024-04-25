@@ -11,6 +11,8 @@ const placementCompanySchema = new mongoose.Schema({
   offers: String,
   dateofvisit: String,
   arrival: String,
+}, {
+  timestamps: true
 });
 
 const PlacementCompany = mongoose.model('placementcompanies', placementCompanySchema);

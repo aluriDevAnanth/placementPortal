@@ -7,6 +7,7 @@ import AuthCon from '../context/AuthPro'
 import Header from './Admin/components/Header'
 import Events from './Admin/Events'
 import CurrEvent from './Admin/CurrEvent'
+import AdminSettings from './Admin/AdminSettings'
 /* Admin */
 
 export default function MentorRoute() {
@@ -21,6 +22,7 @@ export default function MentorRoute() {
           <Route path='/' element={<AdminHome />} />
           <Route path='/setevent' element={<Events />} />
           <Route path='/currevent/:eid' element={<CurrEvent />} />
+          <Route path='/settings' element={<AdminSettings />} />
         </Routes>
       }
     </>
