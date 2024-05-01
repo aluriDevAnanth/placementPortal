@@ -1,44 +1,124 @@
-import React, { useContext, useState } from 'react';
+import React, { useContext, useEffect, useState } from 'react';
 import Sidebar from './components/Sidebar';
 import AuthCon from '../../context/AuthPro';
 import MentorCon from "../../context/MentorPro";
+import { WithContext as ReactTags } from 'react-tag-input';
 
 export default function MenteesMail() {
-  const { user } = useContext(AuthCon);
+  const { user, auth } = useContext(AuthCon);
   const { students } = useContext(MentorCon);
-  const itemsPerPage = 10;
   const [currentPage, setCurrentPage] = useState(1);
+  const [displayedStudents, setDisplayedStudents] = useState([]);
+  const [tags, setTags] = useState([]);
+  const [suggestions, setSuggestions] = useState();
+  const itemsPerPage = 10;
 
   const handlePageChange = (newPage) => {
     setCurrentPage(newPage);
   };
 
-  const startIndex = (currentPage - 1) * itemsPerPage;
-  const endIndex = startIndex + itemsPerPage;
-  const displayedStudents = students.slice(startIndex, endIndex);
-
   const checkAll = (e) => {
     const checkboxes = document.querySelectorAll('input[type="checkbox"]');
+    const checkedStudents = [];
     checkboxes.forEach((checkbox) => {
       checkbox.checked = e.target.checked;
+      if (e.target.checked) {
+        const student = displayedStudents.find((s) => s.email === checkbox.value);
+        if (student) {
+          checkedStudents.push(student.email);
+        }
+      }
     });
+    setTags(checkedStudents.map(q => { return { id: q, text: q } }));
+  };
 
-  }
+  useEffect(() => {
+    if (students) {
+      const startIndex = (currentPage - 1) * itemsPerPage;
+      const endIndex = startIndex + itemsPerPage;
+      const DS = students.slice(startIndex, endIndex);
+      setDisplayedStudents(DS);
+    }
+  }, [students, currentPage]);
 
-  function sendEmail(e) {
+  const handleCheckboxChange = (e) => {
+    const checked = e.target.checked;
+    const value = e.target.value;
+    const student = displayedStudents.find((s) => s.email === value);
+    if (checked && student) {
+      setTags([...tags, { id: student.email, text: student.email }]);
+    } else {
+      setTags(tags.filter((tag) => tag.id !== value));
+    }
+  };
+
+  async function sendEmail(e) {
     e.preventDefault();
-
     const formData = new FormData(e.currentTarget);
     let q = {};
-
-    for (let [key, value] of formData.entries()) {
-      q[key] = value;
-    }
-
-    q.emails = q.emails.split(",")
-
-    //console.log(q)
+    for (let [key, value] of formData.entries()) q[key] = value;
+    q = { ...q, emails: tags.map(qq => { return qq.text }) }
+    console.log(q);
+    const response = await fetch('http://localhost:3000/api/mentor/sendEmail', {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "Authorization": `Bearer ${auth}`,
+      },
+      body: JSON.stringify({ user, data: q }),
+    });
+    const res = await response.json();
+    console.log(res);
   }
+
+
+  const handleDelete = (i) => {
+    // Remove the tag
+    setTags(tags.filter((tag, index) => index !== i));
+
+    // Remove the corresponding checkbox selection
+    const deletedTag = tags[i];
+    setDisplayedStudents(prevStudents => prevStudents.map(student => {
+      if (student.email === deletedTag.id) {
+        const checkboxes = document.querySelectorAll('input[type="checkbox"]');
+        checkboxes.forEach((checkbox) => {
+          if (checkbox.value === deletedTag.id) {
+            checkbox.checked = false;
+          }
+        });
+        return {
+          ...student,
+          isChecked: false
+        };
+      }
+      return student;
+    }));
+  };
+
+  const handleDrag = (tag, currPos, newPos) => {
+    const newTags = tags.slice();
+    newTags.splice(currPos, 1);
+    newTags.splice(newPos, 0, tag);
+    setTags(newTags);
+  };
+
+  useEffect(() => {
+    if (students) {
+      let sugg = students.map(student => ({ id: student.email, text: student.email }));
+      setSuggestions(sugg)
+    }
+  }, [students]);
+
+  useEffect(() => {
+    if (tags.length > 0 && students.length > 0) {
+      const checkboxes = document.querySelectorAll('input[type="checkbox"]:not(#mcheck)');
+      checkboxes.forEach((checkbox) => {
+        const tagExists = tags.some(tag => tag.id === checkbox.value);
+        checkbox.checked = tagExists;
+      });
+    }
+  }, [tags, students]);
+
 
   return (
     user !== null && (
@@ -49,24 +129,42 @@ export default function MenteesMail() {
               <Sidebar />
             </div>
             <div className='flex-fill'>
-              <form onSubmit={sendEmail} className="p-3 mb-4 gap-3" style={{ backgroundColor: "Ghostwhite" }}>
+              <form onSubmit={sendEmail} className="p-3 mb-4 gap-3 compose-email-form">
                 <h4>Compose Email</h4>
-                <p id="multi-responce"></p>
                 <div className="form-group mb-3">
-                  <textarea className="form-control" id="emails" name="emails" placeholder="Email list" style={{ height: "120px" }}></textarea>
+                  {suggestions && (
+                    <ReactTags
+                      tags={tags} inline suggestions={suggestions} handleDelete={handleDelete} handleDrag={handleDrag}
+                      classNames={{
+                        tags: ' ',
+                        tagInput: 'tagInputClass',
+                        tagInputField: 'form-control',
+                        selected: 'selectedClass',
+                        tag: 'badge bg-primary me-1',
+                        remove: 'ms-1 bg-danger',
+                        suggestions: 'list-group',
+                        activeSuggestion: 'list-group-item active',
+                        editTagInput: 'editTagInputClass',
+                        editTagInputField: 'editTagInputField',
+                        clearAll: 'clearAllClass',
+                      }}
+                      handleAddition={(tag) => setTags([...tags, tag])} placeholder="Email list"
+                    />
+                  )}
+
+
                 </div>
                 <div className="form-group mb-3">
-                  <input type="text" className="form-control" id="subject" name="subject" placeholder="Subject" required="" />
+                  <input type="text" className="form-control" id="subject" name="subject" placeholder="Subject" required />
                 </div>
                 <div className="form-group mb-3">
-                  <textarea style={{ height: "220px" }} id="message" name="message" className="form-control" placeholder="Your Message" rows="5" required=""></textarea>
+                  <textarea id="message" name="message" className="form-control" placeholder="Your Message" rows="5" required />
                 </div>
                 <div>
-                  <button type="btn btn-primary " /* onClick="multi_email();" */ className="btn btn-primary btn-lg col-lg-12" id="send">
+                  <button type="submit" className="btn btn-primary  ">
                     Send Now
                   </button>
                 </div>
-
               </form>
 
               <table className="shadow table table-striped table-bordered table-hover">
@@ -78,60 +176,29 @@ export default function MenteesMail() {
                     <th>Email</th>
                   </tr>
                 </thead>
-
-                <tbody id="alluser">
-                  {displayedStudents.map((q) => (
-                    <tr key={q.email}>
+                <tbody>
+                  {displayedStudents.map((student) => (
+                    <tr key={student.email}>
                       <td className='text-center'>
-                        <input type="checkbox" value={q.email} /* onClick="updateTextArea();" */ />
+                        <input type="checkbox" value={student.email} onChange={handleCheckboxChange} />
                       </td>
-                      <td>{q.rollno}</td>
-                      <td>{q.name}</td>
-                      <td>{q.email}</td>
+                      <td>{student.rollno}</td>
+                      <td>{student.name}</td>
+                      <td>{student.email}</td>
                     </tr>
                   ))}
                 </tbody>
               </table>
-              <div>
+
+              {students && (
                 <nav aria-label="Page navigation example">
-                  <ul className="pagination justify-content-center ">
-                    <li className={`page-item ${currentPage === 1 ? 'disabled' : ''}`}>
-                      <button className="page-link" onClick={() => handlePageChange(1)}>
-                        First
-                      </button>
-                    </li>
-                    <li className={`page-item ${currentPage === 1 ? 'disabled' : ''}`}>
-                      <button className="page-link" onClick={() => handlePageChange(currentPage - 1)}>
-                        Prev
-                      </button>
-                    </li>
-                    {[...Array(Math.ceil(students.length / itemsPerPage)).keys()].map((page) => (
-                      <li key={page} className={`page-item ${currentPage === page + 1 ? 'active' : ''}`}>
-                        <button
-                          className="page-link"
-                          onClick={() => handlePageChange(page + 1)}
-                        >
-                          {page + 1}
-                        </button>
-                      </li>
-                    ))}
-                    <li className={`page-item ${currentPage === Math.ceil(students.length / itemsPerPage) ? 'disabled' : ''}`}>
-                      <button className="page-link" onClick={() => handlePageChange(currentPage + 1)}>
-                        Next
-                      </button>
-                    </li>
-                    <li className={`page-item ${currentPage === Math.ceil(students.length / itemsPerPage) ? 'disabled' : ''}`}>
-                      <button className="page-link" onClick={() => handlePageChange(Math.ceil(students.length / itemsPerPage))}>
-                        Last
-                      </button>
-                    </li>
+                  <ul className="pagination justify-content-center">
+                    {/* Pagination buttons */}
                   </ul>
                 </nav>
-              </div>
-              {/* ... (rest of your code) */}
+              )}
             </div>
           </div>
-
         </div>
       </div>
     )
