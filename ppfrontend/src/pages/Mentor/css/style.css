@@ -8,6 +8,12 @@
 body {
   background-color: #eeebdd !important;
   font-family: "Cascadia", sans-serif !important;
-}
+}  
 
- 
+.custom-dropdown {
+  max-height: 200px;  
+}
+.ui-autocomplete-panel {
+  max-height: 200px; /* Adjust the height as needed */
+  overflow-y: auto; /* Enable vertical scrolling if the dropdown height exceeds the max height */
+}

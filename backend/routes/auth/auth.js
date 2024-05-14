@@ -128,6 +128,50 @@ router.post('/login', async (req, res) => {
     }
 });
 
+router.post('/newLogin', async (req, res) => {
+    try {
+        const { username, password } = req.body;
+        const pass = md5(password);
+        if (username.substr(0, 2) === "AP") {
+            const student = await LogDet.findOne({ username });
+            const parent = await Parent.findOne({ rollno: username });
+            if (student && pass === student.password) {
+                const jwt = createJwt(student.username, student.role)
+                res.json({ success: true, user: student, jwt })
+            } else if (parent && pass === parent.psd) {
+                const jwt = createJwt(parent.rollno, 'parent')
+                res.json({ success: true, user: { ...parent, role: "parent" }, jwt })
+            }
+            else res.status(404).json({ success: false, error: "Wrong Username or Password" });
+
+        } else if (isemail.validate(username)) {
+            const teacher = await LogDet.findOne({ username });
+            if (teacher && pass === teacher.password) {
+                const user = await Mentor.findOne({ email: username })
+                const jwt = createJwt(teacher.username, teacher.role)
+                res.json({ success: true, user, jwt })
+            }
+            else {
+                res.status(404).json({ success: false, error: "Wrong Username or Password" });
+            }
+
+        } else if (validateNumber(username)) {
+            const student = await Student.findOne({ phone: username });
+            if (student) {
+                const jwt = createJwt(student.username, student.role)
+                res.json({ success: true, user: student, jwt })
+            }
+            else res.status(404).json({ success: false, error: "Wrong Phone number" });
+
+        } else {
+            res.status(400).json({ success: false, error: "Invalid username format" });
+        }
+    } catch (error) {
+        console.log("lll", error);
+        res.status(500).json({ success: false, error });
+    }
+});
+
 router.post('/sendOTP', async (req, res) => {
     try {
         const { username } = req.body;

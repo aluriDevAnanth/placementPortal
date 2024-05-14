@@ -30,11 +30,13 @@ router.get('/getStudents/:year', async (req, res) => {
         const { username, role } = jwt.verify(token, 'qwertyuiop');
         if (role === "mentor") {
             //console.log(req.params.year)
-            const studentList = await Student.find({ mentoremail: username, batch: req.params.year })
-            res.json({
-                success: true,
-                data: { studentList }
-            });
+            let studentList = await Student.find({ mentoremail: username, batch: req.params.year })
+            let qq = {};
+            studentList.map((q, i) => {
+                let w = q.rollno
+                qq[w] = q;
+            })
+            res.json({ success: true, data: { studentList: qq } });
         }
     } else {
         res.json({
@@ -45,34 +47,19 @@ router.get('/getStudents/:year', async (req, res) => {
 })
 
 router.post('/getAtt', async (req, res) => {
-    const { rollno } = req.body;
-    const att1 = await Att.find({ rollno: { $in: rollno } })
-
-    const groupedResults = {};
-    att1.forEach((result) => {
-        const rollno = result.rollno;
-        const attendType = result.attentype.toLowerCase();
-        const week = result.week;
-
-        if (!groupedResults[rollno]) {
-            groupedResults[rollno] = {};
+    try {
+        const { rollno } = req.body;
+        const att1 = await Att.find({ rollno: { $in: rollno } })
+        let att = {};
+        for (let i of att1) {
+            if (!att[i.rollno]) att[i.rollno] = [];
+            att[i.rollno].push(i);
         }
-
-        if (!groupedResults[rollno][attendType]) {
-            groupedResults[rollno][attendType] = {};
-        }
-
-        if (!groupedResults[rollno][attendType][week]) {
-            groupedResults[rollno][attendType][week] = [];
-        }
-
-        groupedResults[rollno][attendType][week].push(result);
-    });
-
-    const att = { ...groupedResults }
-
-
-    res.status(200).json({ data: att })
+        //console.log(att)
+        res.status(200).json({ success: true, data: { att } })
+    } catch (e) {
+        console.log(e);
+    }
 })
 
 router.get('/getSchedule/:year', async (req, res) => {
@@ -133,8 +120,8 @@ router.post('/uploadMFB', async (req, res) => {
                 "mentoremail": user.email,
                 "mentordept": user.dept,
                 "reviewtype": data.reviewtype,
-                "rollno": data.reviewtype,
-                "contactperson": data.menteesno,
+                "rollno": data.rollno,
+                "contactperson": data.reviewtype,
                 "modeofcom": data.modeofcom,
                 "menreview": data.menreview,
                 "uploadeddate": format(new Date(data['meeting-time']), "yyyy-MM-dd"),
@@ -208,9 +195,9 @@ router.get('/getCom/:year', async (req, res) => {
 
     if (token) {
         const { username, role } = jwt.verify(token, 'qwertyuiop');
-        if (role === "mentor" || role === "parent") {
+        if (role === "mentor" || role === "parent" || role === "student") {
             console.log(req.params.year)
-            const com = await PlacementCompany.find({ batch: req.params.year })
+            const com = await PlacementCorner.find({ batch: req.params.year })
             res.json({
                 success: true,
                 data: com
@@ -290,7 +277,7 @@ router.get('/getYears', async (req, res) => {
         const { username, role } = jwt.verify(token, 'qwertyuiop');
         //console.log(username, role)
         try {
-            if (role === 'mentor') {
+            if (role === 'mentor' || role === 'HOD') {
                 const batches = await Student.distinct('batch');
                 res.json({ success: true, data: { batches } });
             } else {
@@ -303,7 +290,6 @@ router.get('/getYears', async (req, res) => {
     } else {
         res.json({ success: false, error: 'auth failed' });
     }
-
 });
 
 router.post('/createPlacement', async (req, res) => {
@@ -368,7 +354,7 @@ router.post('/getStudentPlacementProgress/:year', async (req, res) => {
     try {
         const { rollno } = req.body; const { year } = req.params;
 
-        let eligibleCompany = {}; let appliedCompany = {};
+        let eligibleCompany = {}; let appliedCompany = {}; let shortlistedCompany = {};
         await Promise.all(rollno.map(async (no) => {
             let qqq = await PlacementCorner.find({ eligibleStudents: no, batch: year }, { name: 1, _id: 0 });
             qqq = qqq.map(item => item.name);
@@ -379,6 +365,12 @@ router.post('/getStudentPlacementProgress/:year', async (req, res) => {
             let qqq = await PlacementCorner.find({ appliedStudents: no, batch: year }, { name: 1, _id: 0 });
             qqq = qqq.map(item => item.name);
             appliedCompany[no] = qqq
+        }));
+
+        await Promise.all(rollno.map(async (no) => {
+            let qqq = await PlacementCorner.find({ shortlistedStudents: no, batch: year }, { name: 1, _id: 0 });
+            qqq = qqq.map(item => item.name);
+            shortlistedCompany[no] = qqq
         }));
 
         let stages = {}; let placed = {};
@@ -404,11 +396,34 @@ router.post('/getStudentPlacementProgress/:year', async (req, res) => {
             //console.log(ot, gd, inter, hr, other);
         }));
 
-        res.json({ success: true, data: { eligibleCompany, appliedCompany, stages, placed } });
+        res.json({ success: true, data: { eligibleCompany, appliedCompany, shortlistedCompany, stages, placed } });
     } catch (error) {
         console.log(error);
         res.status(500).json({ success: false, message: 'Internal server error' });
     }
 });
+
+router.get('/getComp/:batch', async (req, res) => {
+    try {
+        let token;
+        const authHeader = req.headers["authorization"];
+        if (authHeader !== undefined) {
+            token = authHeader.split(" ")[1];
+        } else {
+            res.json({ success: false, message: 'token error' });
+        }
+        const { username, role } = jwt.verify(token, 'qwertyuiop');
+        if (token) {
+            const comp = await PlacementCorner.find({ batch: req.params.batch })
+            res.json({ success: true, data: { comp } });
+        } else {
+            res.json({ success: false, message: 'token error' });
+        }
+
+    } catch (error) {
+        console.log(error);
+        res.status(400).json({ success: false, message: "server error" })
+    }
+})
 
 module.exports = router;

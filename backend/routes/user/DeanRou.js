@@ -62,7 +62,7 @@ router.get('/getAllFeed', async (req, res) => {
   }
 })
 
-router.get('/getAllStudents', async (req, res) => {
+router.get('/getAllStudents/:year', async (req, res) => {
   //console.log(1, req.body)
   let token;
   const authHeader = req.headers["authorization"];
@@ -71,7 +71,7 @@ router.get('/getAllStudents', async (req, res) => {
   }
 
   if (token) {
-    const studentList = await Student.find({})
+    const studentList = await Student.find({ batch: req.params.year })
     res.json({
       success: true,
       data: { studentList }

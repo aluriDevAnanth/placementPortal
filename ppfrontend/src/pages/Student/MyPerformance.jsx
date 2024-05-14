@@ -1,5 +1,5 @@
 import React, { useContext, useEffect, useState } from 'react'
-import Sidebar from './components/ParentSidebar'
+import Sidebar from './components/Sidebar'
 import AuthCon from '../../context/AuthPro';
 
 export default function ParentTestResult() {
@@ -19,7 +19,7 @@ export default function ParentTestResult() {
     });
 
     const res = await response.json();
-    //console.log(res)
+    console.log(res)
     setSchedule(res.data)
   }
 
@@ -47,6 +47,7 @@ export default function ParentTestResult() {
       });
     }
   }, [schedule]);
+
 
   return (
     user !== null && (

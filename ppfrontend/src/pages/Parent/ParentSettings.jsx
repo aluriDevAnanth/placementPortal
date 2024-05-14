@@ -33,7 +33,7 @@ export default function ParentSettings() {
       const password = formData.get('pass');
       const confirmPassword = formData.get('cpass');
       const data = { pass: password, cpass: confirmPassword }
-      console.log(data);
+      //console.log(data);
       const response = await fetch(`http://localhost:3000/api/parent/changePassword`, {
         method: "PUT",
         headers: {

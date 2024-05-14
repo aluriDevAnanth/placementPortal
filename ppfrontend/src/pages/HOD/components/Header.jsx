@@ -3,9 +3,11 @@ import logo from '/img/bigIcon.png';
 import { Link, useNavigate } from 'react-router-dom'
 import AuthCon from '../../../context/AuthPro'
 import Cookies from 'js-cookie';
+import HODCon from '../../../context/HODPro';
 
 export default function Header() {
   const { user, setAuth, setUser } = useContext(AuthCon);
+  const { year, setYear } = useContext(HODCon);
   const navi = useNavigate()
 
   function handleLogout(e) {
@@ -24,6 +26,13 @@ export default function Header() {
     navi('/')
   }
 
+  const chgnYear = (e) => {
+    console.log(e.target.value);
+    setYear(prevYear => {
+      return { ...prevYear, curr: e.target.value };
+    });
+  }
+
   return (
     user !== null ? <nav className="navbar navbar-expand-lg navbg mb-4" style={{ backgroundColor: "#EEEBDD !important" }}>
       <div className="container-fluid">
@@ -34,6 +43,16 @@ export default function Header() {
           <span className="navbar-toggler-icon"></span>
         </button>
         <div className='ms-auto d-flex'>
+          <div className="dropdown me-3">
+            {year && <button className="btn btn-secondary dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false" style={{ backgroundColor: "#696747" }} >
+              Select Batch: {year.curr}
+            </button>}
+            <ul className="dropdown-menu">
+              {year && year.years.map(q => {
+                return <li key={q}><button className={`dropdown-item ${(q === '2018' && window.location.pathname === '/attendence') ? 'disabled' : ''} `} value={q} onClick={chgnYear}>{q}</button></li>
+              })}
+            </ul>
+          </div>
           <div className="collapse navbar-collapse me-4" id="navbarSupportedContent">
             <div className="dropdown ">
               <button className="btn dropdown-toggle rounded-3 text-white" style={{ backgroundColor: "#696747" }} type="button" data-bs-toggle="dropdown" aria-expanded="false">

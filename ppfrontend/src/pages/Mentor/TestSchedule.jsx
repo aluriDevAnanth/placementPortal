@@ -2,7 +2,6 @@ import React, { useContext, useEffect, useState } from 'react'
 import Sidebar from './components/Sidebar'
 import AuthCon from '../../context/AuthPro';
 import MentorCon from "../../context/MentorPro";
-import Header from './components/Header';
 
 export default function TestSchedule() {
   const { user, auth } = useContext(AuthCon);

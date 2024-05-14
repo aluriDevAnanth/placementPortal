@@ -1,9 +1,10 @@
 import React, { useContext, useState, useEffect } from 'react';
 import Sidebar from './components/Sidebar';
 import AuthCon from '../../context/AuthPro';
+import Cookies from 'js-cookie';
 
 export default function MentorSettings() {
-  const { user, auth } = useContext(AuthCon);
+  const { user, auth, setAuth, setUser } = useContext(AuthCon);
   const [err, setErr] = useState('');
   const [err2, setErr2] = useState('');
 
@@ -31,7 +32,6 @@ export default function MentorSettings() {
     });
     const res = await response.json();
     setErr2({ e: "Done!", type: "success" })
-
   };
 
   const chgnPwd = async (e) => {
@@ -53,7 +53,20 @@ export default function MentorSettings() {
         },
         body: JSON.stringify(q),
       });
-      setErr({ e: "Done!", type: "success" })
+      try {
+        const res = await response.json();
+        if (res.success) {
+          setErr({ e: "Done!", type: "success" });
+          alert('Done! password changed, now you are going to logout so you have to login again')
+          Cookies.remove('token');
+          setAuth(null);
+          setUser(null);
+          window.location.reload();
+        }
+      } catch (error) {
+        console.error('Error parsing JSON:', error);
+      }
+
     } else {
       setErr({ e: "Passwords do not match", type: "danger" })
     }

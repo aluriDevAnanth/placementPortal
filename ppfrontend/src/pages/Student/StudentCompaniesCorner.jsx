@@ -1,6 +1,6 @@
 import React, { useContext, useEffect, useState } from 'react';
 import AuthCon from '../../context/AuthPro';
-import Sidebar from './components/ParentSidebar';
+import Sidebar from './components/Sidebar';
 
 export default function ParentCompaniesCorner() {
   const { user, auth } = useContext(AuthCon);
@@ -14,7 +14,7 @@ export default function ParentCompaniesCorner() {
         "Authorization": `Bearer ${auth}`,
       },
     });
-    //console.log(121, response);
+    console.log(121, response);
     const res = await response.json();
     let q = []
     let w = []
@@ -25,7 +25,7 @@ export default function ParentCompaniesCorner() {
         w.push(qq)
       }
     })
-    //console.log(res);
+    console.log(res);
     setCom([[...q], [...w]])
 
   }
@@ -44,18 +44,17 @@ export default function ParentCompaniesCorner() {
               <Sidebar />
             </div>
             <div className="ms-4 flex-fill col-md-8 col-sm-1 col-xs-2 mt-3 ml-4">
-
               {com && <ul className="nav nav-tabs shadow" id="myTab" role="tablist">
                 <li className="nav-item" role="presentation">
-                  <a className="nav-link active" id="ExpectedCompanies-tab" data-bs-toggle="tab" href="#ExpectedCompanies" role="tab" aria-controls="ExpectedCompanies" aria-selected="true">Expected Companies <span class="badge text-bg-secondary">{com[0].length}</span></a>
+                  <a className="nav-link active" id="ExpectedCompanies-tab" data-bs-toggle="tab" href="#ExpectedCompanies" role="tab" aria-controls="ExpectedCompanies" aria-selected="true">Expected Companies <span className="badge text-bg-secondary">{com[0].length}</span></a>
                 </li>
                 <li className="nav-item" role="presentation">
-                  <a className="nav-link" id="VisitedCompanies-tab" data-bs-toggle="tab" href="#VisitedCompanies" role="tab" aria-controls="VisitedCompanies" aria-selected="false">Visited Companies <span class="badge text-bg-secondary">{com[1].length}</span></a>
+                  <a className="nav-link" id="VisitedCompanies-tab" data-bs-toggle="tab" href="#VisitedCompanies" role="tab" aria-controls="VisitedCompanies" aria-selected="false">Visited Companies <span className="badge text-bg-secondary">{com[1].length}</span></a>
                 </li>
               </ul>}
 
               {com && <div className="tab-content shadow" id="myTabContent">
-                {/* {console.log(com)} */}
+                {console.log(com)}
                 <div className="tab-pane fade bg-white show active p-3" id="ExpectedCompanies" role="tabpanel" aria-labelledby="ExpectedCompanies-tab">
                   <h5>
                     <strong>Note: All the Below dates are Tentatively only</strong>

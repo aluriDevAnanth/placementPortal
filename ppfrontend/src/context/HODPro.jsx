@@ -38,7 +38,7 @@ export function HODPro({ children }) {
   }
 
   async function fetchStudents() {
-    const response = await fetch(`http://localhost:3000/api/dean/getAllStudents`, {
+    const response = await fetch(`http://localhost:3000/api/dean/getAllStudents/${year.curr}`, {
       method: "GET",
       headers: {
         "Content-Type": "application/json",
@@ -63,14 +63,36 @@ export function HODPro({ children }) {
     //console.log(comp)
   }
 
-  useEffect(() => {
-    if (auth !== undefined) {
-      fetchMentors(); fetchStudents(); fetchComp(); fetchFeed(); ``
+  async function fetchYears() {
+    const response = await fetch(`http://localhost:3000/api/mentor/getYears`, {
+      method: "GET",
+      headers: {
+        "Content-Type": "application/json",
+        "Authorization": `Bearer ${auth}`,
+      },
+    });
+    const res = await response.json();
+    if (res) {
+      let q = { curr: years.at(-1), years: years.slice().reverse() }
+      setYear(q)
+      //console.log(q)
     }
-  }, [])
+  }
+
+  useEffect(() => {
+    if (auth) {
+      fetchYears();
+    }
+  }, [auth])
+
+  useEffect(() => {
+    if (auth) {
+      fetchMentors(); fetchStudents(); fetchComp(); fetchFeed();
+    }
+  }, [auth, year])
 
   return (
-    <HODCon.Provider value={{ year, mentors, stu, comp, feed }}>{children}</HODCon.Provider>
+    <HODCon.Provider value={{ year, mentors, stu, comp, feed, year, setYear }}>{children}</HODCon.Provider>
   );
 }
 

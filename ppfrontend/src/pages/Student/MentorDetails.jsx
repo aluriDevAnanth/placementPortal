@@ -17,7 +17,7 @@ export default function MentorDetails() {
     });
     const res = await response.json();
     const { _id, __v, role, ...cleanedData } = res.data.men;
-    //console.log(cleanedData);
+    console.log(cleanedData);
     setMen(cleanedData)
   }
 

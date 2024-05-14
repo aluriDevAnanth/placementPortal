@@ -2,6 +2,7 @@ const mongoose = require('mongoose');
 
 const PlacementCornerSchema = new mongoose.Schema({
   name: String,
+  arrival: String,
   CTC: String,
   jodRole: String,
   category: String,
@@ -10,7 +11,7 @@ const PlacementCornerSchema = new mongoose.Schema({
   batch: String,
   statusOfDrive: String,
   offers: String,
-  dateOfVisit: String,
+  dateOfVisit: Date,
   progressOfCompany: String,
   modeOfDrive: String,
   jobDes: String,
@@ -18,13 +19,15 @@ const PlacementCornerSchema = new mongoose.Schema({
   applied: Number,
   eligibleStudents: [String],
   appliedStudents: [String],
+  shortlistedStudents: [String],
   placedStudents: [String],
   stages: {
     onlineTest: [String],
     GD: [String],
     interview: [String],
     otherStages: [String],
-  }
+  },
+  stuFeed: {},
 }, {
   timestamps: true
 });

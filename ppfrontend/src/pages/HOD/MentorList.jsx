@@ -1,6 +1,8 @@
 import React, { useContext, useEffect, useState } from 'react'
 import Sidebar from './components/Sidebar'
 import AuthCon from '../../context/AuthPro'
+import { DataTable } from 'primereact/datatable';
+import { Column } from 'primereact/column';
 
 export default function MentorList() {
   const { auth } = useContext(AuthCon)
@@ -31,36 +33,12 @@ export default function MentorList() {
         <Sidebar />
       </div>
       <div className='flex-fill me-5'>
-        <div className='d-flex gap-3'>
-          <p className='fs-3 fw-bolder'>Search</p>
-          <div>
-            <input className='form-control' type="text" />
-          </div>
-          <div>
-            <button className='btn btn-primary' >Search</button>
-          </div>
-        </div>
         <div>
-          <table className='table table-striped table-hover table-bordered'>
-            <thead>
-              <tr className="text-center text-light">
-                <th>Mentors</th>
-                <th>Email</th>
-                <th>No of Mentees</th>
-              </tr>
-            </thead>
-            <tbody>
-              {men &&
-                men.map((q, i) => {
-                  return <tr key={i} className='text-center'>
-                    <th>{q.mentor}</th>
-                    <th>{q.mentoremail}</th>
-                    <th>{q.menteecount}</th>
-                  </tr>
-                })
-              }
-            </tbody>
-          </table>
+          <DataTable removableSort sortMode="multiple" sortField="mentor" sortOrder={1} value={men} paginator rows={10} rowsPerPageOptions={[25, 50]} showGridlines stripedRows filterDisplay="row">
+            <Column sortable field="mentor" header="Mentors" filter filterMatchMode="contains" />
+            <Column sortable field="mentoremail" header="Email" filter filterMatchMode="contains" />
+            <Column sortable field="menteecount" header="No of Mentees" filter filterMatchMode="contains" />
+          </DataTable>
         </div>
       </div>
     </div>

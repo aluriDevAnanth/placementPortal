@@ -3,18 +3,16 @@ import { Routes, Route } from 'react-router-dom'
 
 /* Mentor */
 import AuthCon from '../context/AuthPro'
-import PracticeReport from './Mentor/PracticeReport'
-import Attendence from './Mentor/Attendence'
+import MenteesPractiseDetails from './Mentor/MenteesPractiseDetails'
+import MenteesTrainingAttendance from './Mentor/MenteesTrainingAttendance'
 import TestSchedule from './Mentor/TestSchedule'
 import MentorFeedback from './Mentor/MentorFeedback'
-import StudentProgress from './Mentor/StudentProgress'
-import MenteeSearch from './Mentor/MenteeSearch'
+import MenteeCompanyDashboard from './Mentor/MenteeCompanyDashboard'
+import CompanyDetails from './Mentor/CompanyDetails'
 import Header from './Mentor/components/Header'
 import MenteesMail from './Mentor/MenteesMail'
-import CompaniesCorner from './Mentor/CompaniesCorner'
 import MentorSettings from './Mentor/MentorSettings'
 import MentorHome from './Mentor/MentorHome'
-import PlacementCorner from './Mentor/PlacementCorner'
 /* Mentor */
 
 export default function MentorRoute() {
@@ -27,16 +25,14 @@ export default function MentorRoute() {
         (auth && user != null && user.role === 'mentor') && (
           <Routes>
             <Route path='/' element={<MentorHome />} />
-            <Route path='/practicereport' element={<PracticeReport />} />
-            <Route path='/studentprogress' element={<StudentProgress />} />
-            <Route path='/attendence' element={<Attendence />} />
+            <Route path='/menteespractisedetails' element={<MenteesPractiseDetails />} />
+            <Route path='/studentprogress' element={<MenteeCompanyDashboard />} />
+            <Route path='/menteestrainingattendance' element={<MenteesTrainingAttendance />} />
             <Route path='/testschedule' element={<TestSchedule />} />
             <Route path='/mentorfeedback' element={<MentorFeedback />} />
-            <Route path='/menteesearch' element={<MenteeSearch />} />
+            <Route path='/companydetails' element={<CompanyDetails />} />
             <Route path='/menteesmail' element={<MenteesMail />} />
-            <Route path='/companiescorner' element={<CompaniesCorner />} />
             <Route path='/settings' element={<MentorSettings />} />
-            <Route path='/placementcorner' element={<PlacementCorner />} />
           </Routes>
         )
       }

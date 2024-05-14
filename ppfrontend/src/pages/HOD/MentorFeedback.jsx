@@ -1,13 +1,16 @@
 import React, { useContext, useState, useEffect } from 'react'
-import Header from './components/Header'
 import Sidebar from './components/Sidebar'
 import HODCon from '../../context/HODPro'
 import * as XLSX from 'xlsx';
+import { format, parseISO } from 'date-fns';
+import { DataTable } from 'primereact/datatable';
+import { Column } from 'primereact/column';
 
 export default function MentorFeedback() {
   const { feed, mentors } = useContext(HODCon)
   const [filteredFeed, setFilteredFeed] = useState()
   const [comp, setComp] = useState()
+  const [search, setSearch] = useState()
 
   const exportToExcel = () => {
     const rows = document.querySelectorAll('table tr');
@@ -25,8 +28,9 @@ export default function MentorFeedback() {
     const blob = new Blob([excelBuffer], { type: 'application/octet-stream' });
     const url = URL.createObjectURL(blob);
     const link = document.createElement('a');
-    link.href = url;
-    link.setAttribute('download', 'table_data.xlsx');
+    link.href = url; console.log(11, search);
+    const currentDate = format(new Date(), 'yyyy-MM-dd');
+    link.setAttribute('download', `table_data_for_mentor_feedback_of_${search.mentor}_${search.type}_${search.company}_${currentDate}.xlsx`);
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
@@ -60,13 +64,21 @@ export default function MentorFeedback() {
       q[key] = value;
     }
     const { mentor, type, company } = q;
-
+    setSearch(q)
     const filteredData = feed.filter(item => (item.mentorname === mentor && item.reviewtype === type && item.modeofcom === company));
 
     setFilteredFeed(filteredData.reverse());
     //console.log(q, filteredData)
   }
 
+  const formatDateColumn = (rowData) => {
+    try {
+      return format(parseISO(rowData.createdAt), 'dd/MM/yyyy');
+    } catch (error) {
+      console.log(error);
+      return rowData.createdAt ? rowData.createdAt : rowData.timestm
+    }
+  };
 
   return (
     <div>
@@ -74,7 +86,7 @@ export default function MentorFeedback() {
         <div className='me-3'>
           <Sidebar />
         </div>
-        {feed && <div className='me-5'>
+        {feed && <div className='me-3'>
           <div className='d-flex'>
             <form onSubmit={handleSearch} className='d-flex'>
               <p className="fw-bold fs-3 me-2">Search</p>
@@ -110,32 +122,16 @@ export default function MentorFeedback() {
             </div>
           </div>
           <div>
-            <table className='table table-bordered table-striped table-hover'>
-              <thead>
-                <tr className="text-center">
-                  <th>Mentor</th>
-                  <th>Roll No</th>
-                  <th>Contacted Person</th>
-                  <th>Feedback About</th>
-                  <th>Description</th>
-                  <th>Time</th>
-                </tr>
-              </thead>
-              <tbody>
-                {filteredFeed &&
-                  filteredFeed.map((q, i) => {
-                    return <tr key={i} className="text-center">
-                      <th>{q.mentorname}</th>
-                      <th>{q.rollno}</th>
-                      <th>{q.contactperson}</th>
-                      <th>{q.modeofcom}</th>
-                      <th>{q.menreview}</th>
-                      <th>{q.timestm}</th>
-                    </tr>
-                  })
-                }
-              </tbody>
-            </table>
+            {filteredFeed && (
+              <DataTable value={filteredFeed} showGridlines stripedRows paginator rows={10} rowsPerPageOptions={[25, 50]} sortField="0" sortOrder={1} removableSort className="p-datatable-striped" filterDisplay="row" emptyMessage="No Mentor found.">
+                <Column field="mentorname" header="Mentor" className="text-center" sortable filter filterMatchMode="contains" showFilterMenu={false} />
+                <Column field="rollno" header="Roll No" className="text-center" sortable filter filterMatchMode="contains" showFilterMenu={false} />
+                <Column field="contactperson" header="Contacted Person" className="text-center" sortable filter filterMatchMode="contains" showFilterMenu={false} />
+                <Column field="modeofcom" header="Feedback About" className="text-center" sortable filter filterMatchMode="contains" showFilterMenu={false} />
+                <Column field="menreview" header="Description" className="text-center" sortable filter filterMatchMode="contains" showFilterMenu={false} />
+                <Column field="timestm" header="Time" body={formatDateColumn} className="text-center" sortable filter filterMatchMode="contains" showFilterMenu={false} />
+              </DataTable>
+            )}
           </div>
         </div>}
       </div>
