@@ -10,6 +10,7 @@ import HODRoute from './pages/HODRoute'
 import AdminRoute from './pages/AdminRoute'
 import StudentRoute from './pages/StudentRoute'
 import ParentRoute from './pages/ParentRoute'
+import CoorRoute from './pages/CoorRoute'
 
 import { HODPro } from './context/HODPro'
 import { DeanPro } from './context/DeanPro'
@@ -60,6 +61,11 @@ function App() {
         <AdminPro>
           {console.log("AdminRoute", 1, user)}
           <AdminRoute />
+        </AdminPro>}
+      {user && user.role === 'coor' &&
+        <AdminPro>
+          {console.log("AttCoorRoute", 1, user)}
+          <CoorRoute />
         </AdminPro>}
       <Routes>
         <Route path='/' element={(!auth && !user) ? <Login /> : <></>} />

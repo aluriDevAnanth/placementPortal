@@ -74,6 +74,10 @@ router.get('/auth', async (req, res) => {
             } else if (role === 'parent') {
                 const parent = await Student.findOne({ rollno: username })
                 res.json({ success: true, data: { user: parent, role } });
+            } else if (role === 'coor') {
+                const admin = await Mentor.findOne({ email: username })
+                //console.log(admin);
+                res.json({ success: true, data: { user: admin, role } });
             }
         } catch (error) {
             console.log(error);

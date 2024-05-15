@@ -5,11 +5,10 @@ import Accordion from 'react-bootstrap/Accordion';
 import ListGroup from 'react-bootstrap/ListGroup';
 import { Formik, Form, FieldArray, Field, ErrorMessage } from 'formik';
 import * as Yup from 'yup';
-import { Button, Col, Row } from 'react-bootstrap';
+import { Button } from 'react-bootstrap';
 import FloatingLabel from 'react-bootstrap/FloatingLabel';
 
 const schema = Yup.object().shape({
-  jobRole: Yup.string().required('Job Role is required'),
   noOfRounds: Yup.number()
     .required('Number of Rounds is required')
     .positive('Number of Rounds must be a positive integer')
@@ -60,7 +59,7 @@ export default function StuCompFeed({ SCF, completed, setSCF, fetchStuCompFeed }
                   {!q.completed ? <div className='mt-3'>
                     <Formik
                       initialValues={{
-                        jobRole: "", noOfRounds: "", didGD: "", GDTopic: "", QR1: [""], QRT: [""], QRHR: [""],
+                        noOfRounds: "", didGD: "", GDTopic: "", QR1: [""], QRT: [""], QRHR: [""],
                       }}
                       validationSchema={schema}
                       onSubmit={(values, formikBag) => {
@@ -70,11 +69,6 @@ export default function StuCompFeed({ SCF, completed, setSCF, fetchStuCompFeed }
                     >
                       {({ values, errors, handleSubmit }) => (
                         <Form onSubmit={handleSubmit} className='d-flex flex-column  '>
-                          <FloatingLabel controlId="floatingInput" label="Job Role" className="mb-3" >
-                            <Field className='form-control' name="jobRole" type="text" />
-                            <ErrorMessage className='text-danger' component="p" name="jobRole" />
-                          </FloatingLabel>
-
                           <FloatingLabel controlId="floatingInput" label="How many rounds did the company had" className="mb-3" >
                             <Field name="noOfRounds" className='form-control' type="number" />
                             <ErrorMessage className='text-danger' component="p" name="noOfRounds" />
@@ -88,8 +82,9 @@ export default function StuCompFeed({ SCF, completed, setSCF, fetchStuCompFeed }
 
                           {values.didGD === "Yes" && (
                             <div className="mb-3">
-                              <label htmlFor="GDTopic">Details about the GD:</label>
-                              <Field type="text" id="GDTopic" name="GDTopic" className="form-control" />
+                              <FloatingLabel controlId="GDTopic" label="GD Round Topic" className="mb-3" >
+                                <Field type="text" id="GDTopic" name="GDTopic" className="form-control" />
+                              </FloatingLabel>
                             </div>
                           )}
 

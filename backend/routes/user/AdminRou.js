@@ -33,12 +33,9 @@ function isEventHappening(event) {
   const startTime = new Date(event.startTime);
   const endTime = new Date(event.endTime);
 
-  // Check the recurrence type
   if (event.rec === "once") {
-    // For one-time events, simply check if the current time is within the start and end time
     return currentTime >= startTime && currentTime <= endTime;
   } else if (event.rec === "daily") {
-    // For daily recurring events, check if the current time is within today's start and end time
     const todayStartTime = new Date(startTime);
     todayStartTime.setFullYear(currentTime.getFullYear());
     todayStartTime.setMonth(currentTime.getMonth());
@@ -51,16 +48,13 @@ function isEventHappening(event) {
 
     return currentTime >= todayStartTime && currentTime <= todayEndTime;
   } else if (event.rec === "weekly") {
-    // For weekly recurring events, check if the current day is the same as the event's day
-    // and if the current time is within the event's start and end time
-    const eventDay = startTime.getDay(); // Get the day of the event
-    const currentDay = currentTime.getDay(); // Get the current day
+    const eventDay = startTime.getDay();
+    const currentDay = currentTime.getDay();
     if (eventDay !== currentDay) {
-      return false; // Event is not happening today
+      return false;
     }
     return currentTime >= startTime && currentTime <= endTime;
   } else {
-    // Invalid recurrence type
     throw new Error("Invalid recurrence type");
   }
 }
@@ -85,9 +79,9 @@ router.get('/getEvents', async (req, res) => {
   if (token) {
     try {
       const { username, role } = jwt.verify(token, 'qwertyuiop');
-      if (role === "admin") {
+      //console.log(role);
+      if (role === "admin" || role === 'coor') {
         let q = await Event.find({});
-        // Calculate if each event is expired
         const eventsWithExpiration = q.map(event => ({
           ...event.toObject(),
           isExp: isEventExpired(event),
@@ -126,7 +120,7 @@ router.get('/getRandomValue', async (req, res) => {
   if (token) {
     try {
       const { username, role } = jwt.verify(token, 'qwertyuiop');
-      if (role === "admin") {
+      if (role === "admin" || role === "coor") {
         const randomValue = generateRandomString(50);
         attToken = randomValue;
         res.json({
@@ -164,7 +158,7 @@ router.get('/getEvent/:eid', async (req, res) => {
   if (token) {
     try {
       const { username, role } = jwt.verify(token, 'qwertyuiop');
-      if (role === "admin") {
+      if (role === "admin" || role === "coor") {
         let q = await Event.find({ _id: eid });
 
         const eventsWithExpiration = q.map(event => ({
