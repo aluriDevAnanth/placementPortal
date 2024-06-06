@@ -2,10 +2,12 @@ import React, { useContext } from 'react'
 import logo from '/img/bigIcon.png';
 import { Link, useNavigate } from 'react-router-dom'
 import AuthCon from '../../../context/AuthPro'
+import AdminCon from '../../../context/AdminPro'
 import Cookies from 'js-cookie';
 
 export default function Header() {
   const { user, setAuth, setUser } = useContext(AuthCon);
+  const { year, setYear } = useContext(AdminCon);
   const navi = useNavigate()
 
   function handleLogout(e) {
@@ -14,6 +16,12 @@ export default function Header() {
     setUser(null)
     localStorage.removeItem('role')
     navi('/')
+  }
+
+  const chgnYear = (e) => {
+    setYear(prevYear => {
+      return { ...prevYear, curr: parseInt(e.target.value) };
+    });
   }
 
   return (
@@ -25,7 +33,19 @@ export default function Header() {
         <button className="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarSupportedContent" aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
           <span className="navbar-toggler-icon"></span>
         </button>
-        <div className='ms-auto d-flex'>
+        <div className='ms-auto d-flex '>
+          <div className='me-3'>
+            <div className="dropdown">
+              {year && <button className="btn btn-secondary dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false" style={{ backgroundColor: "#696747" }} >
+                Current Batch: {year.curr}
+              </button>}
+              <ul className="dropdown-menu">
+                {year && year.years && year.years.map(q => {
+                  return <li key={q}><button className={`dropdown-item ${(q === '2018' && window.location.pathname === '/attendence') ? 'disabled' : ''} `} value={q} onClick={chgnYear}>{q}</button></li>
+                })}
+              </ul>
+            </div>
+          </div>
           <div className="collapse navbar-collapse me-4" id="navbarSupportedContent">
             <div className="dropdown dropstart">
               <button className="btn dropdown-toggle rounded-3 text-white " style={{ backgroundColor: "#696747" }} type="button" data-bs-toggle="dropdown" aria-expanded="false">

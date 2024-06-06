@@ -12,7 +12,6 @@ import { Column } from 'primereact/column';
 export default function CompanyDetails() {
   const { user, auth } = useContext(AuthCon);
   const { students, year } = useContext(MentorCon);
-  const [show, setShow] = useState({ show: false, curr: "", i: "" });
   const toast = useRef(null);
   const [expandedRows, setExpandedRows] = useState();
   const [com, setCom] = useState();
@@ -78,7 +77,7 @@ export default function CompanyDetails() {
           <p className='fs-4 fw-3'>Stages</p>
           {students && Object.keys(q.stages).map((stageCategory, index) => (
             <Accordion key={index} alwaysOpen>
-              <Accordion.Header> {stageCategory} - Total {q.stages[stageCategory].filter(stageKey => Object.keys(students).includes(stageKey)).length} members </Accordion.Header>
+              <Accordion.Header> {stageCategory} - Total {Object.keys(q.stages[stageCategory]).filter(stageKey => Object.keys(students).includes(stageKey)).length} members </Accordion.Header>
               <Accordion.Body>
                 <Table striped bordered hover responsive>
                   <thead>
@@ -89,7 +88,7 @@ export default function CompanyDetails() {
                     </tr>
                   </thead>
                   <tbody>
-                    {q.stages[stageCategory].map((rollNo, idx) => {
+                    {Object.keys(q.stages[stageCategory]).map((rollNo, idx) => {
                       const student = students[rollNo];
                       if (student) {
                         return (
@@ -97,6 +96,7 @@ export default function CompanyDetails() {
                             <td>{student.name}</td>
                             <td>{student.rollno}</td>
                             <td>{student.email}</td>
+                            <td>{q.stages[stageCategory][rollNo]}</td>
                           </tr>
                         );
                       } else {

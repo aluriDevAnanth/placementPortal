@@ -16,6 +16,7 @@ const Student = require('../../models/user/Student');
 const Parent = require('../../models/user/Parent');
 const Mentor = require('../../models/user/Mentor');
 const Att = require('../../models/user/Att')
+const Event = require('../../models/user/Event')
 const Schedule = require('../../models/user/Schedule')
 const PlacementCompany = require('../../models/user/PlacementCompany')
 const PlacementCorner = require('../../models/user/PlacementCorner')
@@ -61,6 +62,29 @@ router.get('/getAtt/:rollno', async (req, res) => {
     if (token) {
       const att = await Att.find({ rollno: req.params.rollno, attentype: "Technical" })
 
+      res.json({ success: true, data: { att } });
+    } else {
+      res.json({ success: false, message: 'token error' });
+    }
+
+  } catch (error) {
+    console.log(error);
+    res.json({ success: false, message: "server error" })
+  }
+})
+
+router.get('/getEventAtt/:rollno', async (req, res) => {
+  try {
+    let token;
+    const authHeader = req.headers["authorization"];
+    if (authHeader !== undefined) {
+      token = authHeader.split(" ")[1];
+    } else {
+      res.json({ success: false, message: 'token error' });
+    }
+    const { username, role } = jwt.verify(token, 'qwertyuiop');
+    if (token) {
+      const att = await Event.find({ students: { $in: [req.params.rollno] } });
       res.json({ success: true, data: { att } });
     } else {
       res.json({ success: false, message: 'token error' });
@@ -264,9 +288,9 @@ router.get('/getCom/:year', async (req, res) => {
 
   if (token) {
     const { username, role } = jwt.verify(token, 'qwertyuiop');
-    console.log(role);
+    //console.log(role);
     if (role === "student" || role === "parent" || role === "mentor") {
-      console.log(req.params.year)
+      //console.log(req.params.year)
       const com = await PlacementCompany.find({ batch: req.params.year })
       res.json({
         success: true,

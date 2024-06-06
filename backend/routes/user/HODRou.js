@@ -19,7 +19,7 @@ const MentorReview = require('../../models/mentor/MentorReview')
 router.use(express.json());
 
 router.get('/getAllMentors', async (req, res) => {
-  console.log(1, req.body)
+  //console.log(1, req.body)
   let token;
   const authHeader = req.headers["authorization"];
   if (authHeader !== undefined) {
@@ -41,7 +41,7 @@ router.get('/getAllMentors', async (req, res) => {
 })
 
 router.get('/getMentorList', async (req, res) => {
-  console.log(1, req.body)
+  //console.log(1, req.body)
   let token;
   const authHeader = req.headers["authorization"];
   if (authHeader !== undefined) {
@@ -51,7 +51,7 @@ router.get('/getMentorList', async (req, res) => {
   if (token) {
     try {
       const { username, role } = jwt.verify(token, 'qwertyuiop');
-      console.log(username)
+      //console.log(username)
       const mentor = await Mentor.findOne({ email: username }, { dept: 1 });
       if (!mentor) {
         console.error('Mentor not found');
@@ -101,7 +101,7 @@ router.get('/getMentorList', async (req, res) => {
 })
 
 router.get('/getAllFeed', async (req, res) => {
-  console.log(1, req.body)
+  //console.log(1, req.body)
   let token;
   const authHeader = req.headers["authorization"];
   if (authHeader !== undefined) {

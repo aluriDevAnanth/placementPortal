@@ -34,7 +34,7 @@ export default function PlacementCorner() {
     });
     const res = await response.json();
     setPP(res.data);
-    //console.log(res.data);
+    console.log(res.data);
   }
 
   useEffect(() => {
@@ -48,7 +48,7 @@ export default function PlacementCorner() {
     if (company && user.rollno) {
       let userStageInfo = company.map(q => {
         const qq = Object.keys(q.stages).map((s, i) => {
-          const qqq = q.stages[s].includes(user.rollno);
+          const qqq = Object.values(q.stages[s]).includes(user.rollno);
           if (qqq) q.currStage = s;
         })
         return qq
@@ -113,6 +113,7 @@ export default function PlacementCorner() {
           </thead>
           <tbody>
             {[user].map((q, i) => {
+              let s = 1
               return (
                 <tr className="text-center" key={i}>
                   <th>{q.name}</th>
@@ -130,7 +131,6 @@ export default function PlacementCorner() {
                   <th>{PP.placed[q.rollno]?.[0]?.CTC || "-"}</th>
                 </tr>
               );
-
             })}
           </tbody>
         </Table>}
@@ -148,7 +148,11 @@ export default function PlacementCorner() {
                 <th>Is Applied</th>
                 <th>Is Shortlisted</th>
                 <th>Mode Of Drive</th>
-                <th>At Stages</th>
+                <th>Online Test</th>
+                <th>GD</th>
+                <th>Interview</th>
+                <th>HR</th>
+                <th>Other Stages</th>
               </tr>
               <tr className='text-center text-light fw-bold'>
                 <th className='text_search'>#</th>
@@ -160,11 +164,15 @@ export default function PlacementCorner() {
                 <th className='text_search'>Is Applied</th>
                 <th className='text_search'>Is Shortlisted</th>
                 <th className='text_search'>Mode Of Drive</th>
-                <th className='text_search'>At Stages</th>
+                <th className='text_search'>Online Test</th>
+                <th className='text_search'>GD</th>
+                <th className='text_search'>Interview</th>
+                <th className='text_search'>HR</th>
+                <th className='text_search'>Other Stages</th>
               </tr>
             </thead>
             <tbody>
-              {company && company.map((q, i) => {
+              {company && user.rollno && company.map((q, i) => {
                 return <tr className='text-center' key={i}>
                   <th>{i + 1}</th>
                   <th>{q.name}</th>
@@ -175,7 +183,11 @@ export default function PlacementCorner() {
                   <th>{q.appliedStudents.includes(user.rollno) ? "Yes" : "No"}</th>
                   <th>{q.shortlistedStudents.includes(user.rollno) ? "Yes" : "No"}</th>
                   <th>{q.modeOfDrive}</th>
-                  <th>{q.currStage ? q.currStage : 'Not Applied or Eligible'}</th>
+                  <th> {q?.stages?.onlineTest?.[user.rollno]} </th>
+                  <th> {q.stages.GD?.[user.rollno]} </th>
+                  <th> {q.stages.interview?.[user.rollno]} </th>
+                  <th> {q.stages.HR?.[user.rollno]} </th>
+                  <th> {q.stages.otherStages?.[user.rollno]} </th>
                 </tr>
               })
               }

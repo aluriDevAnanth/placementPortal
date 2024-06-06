@@ -9,20 +9,33 @@ export default function CurrEvent() {
   const { auth } = useContext(AuthCon);
   const [event, setEvent] = useState();
   const [qrValue, setQRValue] = useState();
+  const [sess, setSess] = useState(false);
+  const [currentTokenIndex, setCurrentTokenIndex] = useState(0);
 
   useEffect(() => {
     fetchEvent();
-  }, [])
+  }, []);
 
-  useEffect(() => {
-    if (event) {
-      fetchRandomValue();
-      const intervalId = setInterval(() => {
-        fetchRandomValue();
-      }, 5000);
-      return () => clearInterval(intervalId);
+  async function fetchTokens(sessionId) {
+    try {
+      const response = await fetch('http://localhost:3000/api/admin/startQrSession', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ sessionId }),
+      });
+      const res = await response.json(); console.log(res.data);
+      return res.data.tokens;
+    } catch (error) {
+      console.error('Fetching tokens failed:', error);
+      return [];
     }
-  }, [event]);
+  }
+
+  function startSession() {
+
+  }
 
   async function fetchEvent() {
     try {
@@ -40,27 +53,13 @@ export default function CurrEvent() {
     }
   }
 
-  async function fetchRandomValue() {
-
-    const response = await fetch('http://localhost:3000/api/admin/getRandomValue', {
-      method: "GET",
-      headers: {
-        "Content-Type": "application/json",
-        "Authorization": `Bearer ${auth}`,
-      },
-    });
-    const res = await response.json();
-    setQRValue({ rand: res.data.randomValue, eid: event._id });
-
-  }
-
   return (
     <>
       <div className='container-fluid d-flex'>
         <div>
           <Sidebar />
         </div>
-        <div className='d-flex ms-4'>
+        <div className='d-flex ms-4 w-100'>
           <div className='d-flex flex-column'>
             <h2>Name: {event?.name} </h2>
             <p>Description: {event?.des}</p>
@@ -69,14 +68,22 @@ export default function CurrEvent() {
             <p>Recurrence: {event?.rec}</p>
             <h3>Students:</h3>
           </div>
-          {qrValue && <div>
-            <QRCode
-              size={1000} style={{ height: "300px", maxWidth: "100%", width: "100%" }} value={JSON.stringify(qrValue)} viewBox={`0 0 256 256`} />
-            <p className='mt-3'>{qrValue.rand}</p>
-          </div>}
+          {qrValue && sess ? (
+            <div className='ms-5'>
+              <QRCode size={1000} style={{ height: "600px", maxWidth: "100%", width: "100%" }} value={qrValue} viewBox={`0 0 256 256`} />
+              <p className='mt-3'>{qrValue.rand}</p>
+              <div className='my-auto mx-auto'>
+                <button onClick={() => { setSess(false); }} className='btn btn-danger '>End Session</button>
+              </div>
+            </div>
+          ) : (
+            <div className='my-auto mx-auto'>
+              <button onClick={() => { setSess(true); startSession(); }} className='btn btn-primary '>Start Session</button>
+            </div>
+          )}
         </div>
       </div>
-      <div className='container mt-3'>
+      <div className='container-fluid mt-3'>
         <div>
           {event && (
             <table className='table table-hover table-bordered table-striped'>
@@ -88,11 +95,11 @@ export default function CurrEvent() {
                 </tr>
               </thead>
               <tbody>
-                {event.students.map(student => (
-                  <tr key={student.rollno}>
-                    <th>{student.name}</th>
-                    <th>{student.rollno}</th>
-                    <th>{student.email}</th>
+                {event.students.map((student, i) => (
+                  <tr key={i}>
+                    <th>{student}</th>
+                    <th>{student}</th>
+                    <th>{student}</th>
                   </tr>
                 ))}
               </tbody>

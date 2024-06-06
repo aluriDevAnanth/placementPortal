@@ -19,7 +19,7 @@ const MentorReview = require('../../models/mentor/MentorReview')
 router.use(express.json());
 
 router.get('/getAllMentors', async (req, res) => {
-  console.log(1, req.body)
+  //console.log(1, req.body)
   let token;
   const authHeader = req.headers["authorization"];
   if (authHeader !== undefined) {
@@ -41,7 +41,7 @@ router.get('/getAllMentors', async (req, res) => {
 })
 
 router.get('/getAllFeed', async (req, res) => {
-  console.log(1, req.body)
+  //console.log(1, req.body)
   let token;
   const authHeader = req.headers["authorization"];
   if (authHeader !== undefined) {

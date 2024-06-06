@@ -129,7 +129,7 @@ router.post('/uploadMFB', async (req, res) => {
             }
             const MR = await MentorReview.create(MFB);
             res.json({ success: true, data: MR });
-            console.log(MR)
+            //console.log(MR)
         } catch (error) {
             console.error(error);
         }
@@ -196,7 +196,7 @@ router.get('/getCom/:year', async (req, res) => {
     if (token) {
         const { username, role } = jwt.verify(token, 'qwertyuiop');
         if (role === "mentor" || role === "parent" || role === "student") {
-            console.log(req.params.year)
+            //console.log(req.params.year)
             const com = await PlacementCorner.find({ batch: req.params.year })
             res.json({
                 success: true,
@@ -248,7 +248,7 @@ router.post('/chgnPwd', async (req, res) => {
     }
     if (token) {
         const { username, role } = jwt.verify(token, 'qwertyuiop');
-        console.log(username, role, req.body)
+        //console.log(username, role, req.body)
         if (role === "mentor" || role === "admin") {
             let q = await LogDet.findOneAndUpdate({ username: username }, {
                 password: md5(req.body.pass)

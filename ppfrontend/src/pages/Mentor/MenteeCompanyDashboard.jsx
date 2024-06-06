@@ -61,7 +61,7 @@ export default function MenteeCompanyDashboard() {
           other: PP.stages[q.rollno]?.other?.length || 0,
           p: PP.placed[q.rollno]?.[0] ? "Placed" : "Not Placed",
           pc: PP.placed[q.rollno]?.[0]?.name || "-",
-          pc: PP.placed[q.rollno]?.[0]?.CTC || "-",
+          pctc: PP.placed[q.rollno]?.[0]?.CTC || "-",
         }
       })
       setDisPP(pp)
@@ -76,26 +76,6 @@ export default function MenteeCompanyDashboard() {
     }
   }, [students, year])
 
-  useEffect(() => {
-    if (company && students) {
-      let atStages = {};
-      Object.values(students).forEach(student => {
-        const rollno = student.rollno;
-        atStages[rollno] = {};
-        company.forEach(c => {
-          const stages = c.stages;
-          Object.keys(stages).forEach(stageName => {
-            const studentsInStage = stages[stageName];
-            if (studentsInStage.includes(rollno)) {
-              atStages[rollno][c._id] = stageName;
-            }
-          });
-        });
-      });
-      setAtStage(atStages);
-    }
-  }, [company, students]);
-
   const onRowExpand = (event) => {
     toast.current.show({ severity: 'info', summary: 'Info Expanded', detail: event.data.name, life: 3000 });
   };
@@ -105,7 +85,7 @@ export default function MenteeCompanyDashboard() {
   };
 
   const allowExpansion = (rowData) => {
-    return company && atStage;
+    return company;
   };
 
   const rowExpansionTemplate = (data) => {
@@ -122,7 +102,11 @@ export default function MenteeCompanyDashboard() {
         as: q.appliedStudents.includes(rollno) ? "Yes" : "No",
         ss: q.shortlistedStudents.includes(rollno) ? "Yes" : "No",
         mod: q.modeOfDrive,
-        at: atStage[rollno][q._id] ? atStage[rollno][q._id] : "Not eligible or applied or not shortlisted",
+        ot: q?.stages?.onlineTest?.[rollno],
+        GD: q?.stages?.GD?.[rollno],
+        inter: q?.stages?.interview?.[rollno],
+        HR: q?.stages?.HR?.[rollno],
+        other: q?.stages?.otherStages?.[rollno],
       }
     })
     const paginatorLeft = <Button type="button" icon="pi pi-refresh" text />;
@@ -139,7 +123,11 @@ export default function MenteeCompanyDashboard() {
           <Column field="as" header="Applied Students" filter sortable showFilterMenu={false} filterMatchMode="contains"></Column>
           <Column field="ss" header="Shortlisted Students" filter sortable showFilterMenu={false} filterMatchMode="contains"></Column>
           <Column field="mod" header="Mode Of Drive" filter sortable showFilterMenu={false} filterMatchMode="contains"></Column>
-          <Column field="at" header="At Stage" filter sortable showFilterMenu={false} filterMatchMode="contains"></Column>
+          <Column field="ot" header="Online Test" filter sortable showFilterMenu={false} filterMatchMode="contains"></Column>
+          <Column field="GD" header="GD" filter sortable showFilterMenu={false} filterMatchMode="contains"></Column>
+          <Column field="inter" header="Interview" filter sortable showFilterMenu={false} filterMatchMode="contains"></Column>
+          <Column field="HR" header="HR" filter sortable showFilterMenu={false} filterMatchMode="contains"></Column>
+          <Column field="other" header="Other Stages" filter sortable showFilterMenu={false} filterMatchMode="contains"></Column>
           <Column headerStyle={{ width: '4rem' }}  ></Column>
         </DataTable>
       </div>
@@ -183,7 +171,7 @@ export default function MenteeCompanyDashboard() {
 
                   <Column field="pc" header="Placed Company" filter sortable filterMatchMode="contains" />
 
-                  <Column field="pcc" header="Placed Company CTC" filter sortable filterMatchMode="contains" />
+                  <Column field="pctc" header="Placed Company CTC" filter sortable filterMatchMode="contains" />
 
                 </DataTable>
               )}

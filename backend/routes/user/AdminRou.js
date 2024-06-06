@@ -4,10 +4,17 @@ const md5 = require('md5');
 var isemail = require('isemail');
 var jwt = require('jsonwebtoken');
 const { format } = require('date-fns')
+const multer = require('multer');
+const xlsx = require('xlsx');
+const fs = require('fs');
+
+const upload = multer({ dest: 'uploads/' });
 
 // Models
-const LogDet = require('../../models/user/LogDet');
-const Student = require('../../models/user/Student');
+const LogDet = require('../../models/user/LogDet1');
+const LogDet2 = require('../../models/user/LogDet');
+const Student = require('../../models/user/Student1');
+const Student2 = require('../../models/user/Student');
 const Parent = require('../../models/user/Parent');
 const Mentor = require('../../models/user/Mentor');
 const Att = require('../../models/user/Att')
@@ -111,7 +118,7 @@ router.get('/getEvents', async (req, res) => {
   }
 });
 
-router.get('/getRandomValue', async (req, res) => {
+/* router.get('/getRandomValue', async (req, res) => {
   let token;
   const authHeader = req.headers["authorization"];
   if (authHeader !== undefined) {
@@ -144,6 +151,32 @@ router.get('/getRandomValue', async (req, res) => {
       success: false,
       error: 'missing token'
     });
+  }
+}); */
+
+function generateTokens(classId) {
+  const Sessiontokens = [];
+  const currentTime = Math.floor(Date.now() / 1000);
+
+  for (let i = 0; i < 10; i++) {
+    const token = jwt.sign({ classId, validUntil: currentTime + (i + 1) * 6 }, 'qwertyuiop', { expiresIn: (i + 1) * 6 });
+    Sessiontokens.push(token);
+  }
+  return Sessiontokens;
+}
+
+router.post("/startQrSession", (req, res) => {
+  const { sessionId } = req.body;
+
+  if (!sessionId) return res.status(400).json({ success: false, message: "Session ID is required" });
+
+  try {
+    const tokens = generateTokens(sessionId);
+    //console.log(tokens);
+    res.json({ success: true, data: { tokens } });
+  } catch (error) {
+    console.log(error);
+    res.status(500).json({ success: false, message: "Failed to generate tokens" });
   }
 });
 
@@ -296,5 +329,186 @@ router.delete('/deleteEvent/:id', async (req, res) => {
     });
   }
 })
+
+router.put('/putEvent', async (req, res) => {
+  let token;
+  const authHeader = req.headers["authorization"];
+  if (authHeader !== undefined) {
+    token = authHeader.split(" ")[1];
+  }
+
+  if (token) {
+    const { username, role } = jwt.verify(token, 'qwertyuiop');
+
+    if (role === "admin") {
+      //console.log(11, req.body.data);
+      let q = await Event.findByIdAndUpdate({ _id: req.body.data._id }, req.body.data, { new: true })
+
+      res.json({
+        success: true,
+        data: q
+      });
+
+    } else {
+      res.json({
+        success: false,
+        error: 'wrong role'
+      });
+    }
+
+  } else {
+    res.json({
+      success: false,
+      error: 'wrong token'
+    });
+  }
+})
+
+router.post('/addStu', upload.single('file'), async (req, res) => {
+  let token;
+  const authHeader = req.headers["authorization"];
+  if (authHeader !== undefined) {
+    token = authHeader.split(" ")[1];
+  }
+  try {
+    if (token) {
+      const { username, role } = jwt.verify(token, 'qwertyuiop');
+
+      if (role === "admin") {
+        try {
+          const file = req.file;
+          if (!file) {
+            return res.status(400).json({ success: false, error: 'No file uploaded' });
+          }
+
+          const workbook = xlsx.readFile(file.path);
+          const sheet_name_list = workbook.SheetNames;
+          const jsonData = xlsx.utils.sheet_to_json(workbook.Sheets[sheet_name_list[0]]);
+          //console.log(jsonData[0]);
+          for (let i of jsonData) {
+            const studentExists = await Student2.findOne({ rollno: i.rollno });
+            if (!studentExists) {
+              await Student2.create({ ...i, yearofpassing: i['year of passing'] });
+            }
+            const logExists = await LogDet2.findOne({ username: i.rollno });
+            if (!logExists) {
+              const q = { username: i.rollno, password: md5(i.rollno), role: "student" };
+              await LogDet2.create(q);
+            }
+          }
+          res.json({
+            success: true,
+            data: jsonData
+          });
+
+          fs.unlink(file.path, (err) => {
+            if (err) {
+              console.error('Error deleting the file:', err);
+            } else {
+              //console.log('Uploaded file deleted successfully');
+            }
+          });
+
+        } catch (error) {
+          console.error('Error processing file:', error);
+          res.status(500).json({ success: false, error: 'Error processing file' });
+        }
+
+      } else {
+        res.json({
+          success: false,
+          error: 'wrong role'
+        });
+      }
+
+    } else {
+      res.json({
+        success: false,
+        error: 'wrong token'
+      });
+    }
+  } catch (e) {
+    res.json({
+      success: false,
+      error: 'internal error'
+    });
+  }
+
+});
+
+router.post('/editStu', async (req, res) => {
+  let token;
+  const authHeader = req.headers["authorization"];
+  try {
+    if (authHeader !== undefined) token = authHeader.split(" ")[1];
+
+    if (token) {
+      const { username, role } = jwt.verify(token, 'qwertyuiop');
+      if (role === "admin") {
+        const stu = req.body.stu;
+        let s = await Student2.findOneAndUpdate({ _id: stu._id }, { ...stu }, { new: true })
+        console.log(1, stu._id, s);
+        res.json({ success: true, data: { stu: s } })
+      } else {
+        res.json({ success: false, error: 'wrong role' });
+      }
+    } else {
+      res.json({ success: false, error: 'wrong token' });
+    }
+  } catch (e) { res.json({ success: false, error: 'internal error' }); }
+
+});
+
+router.get('/getStu/:year', async (req, res) => {
+  let token;
+  const authHeader = req.headers["authorization"];
+  if (authHeader !== undefined) {
+    token = authHeader.split(" ")[1];
+  }
+  try {
+    if (token) {
+      const { username, role } = jwt.verify(token, 'qwertyuiop');
+      if (role === "admin") {
+        const year = parseInt(req.params.year, 10);
+        //console.log(year, typeof (year));
+        const stu = await Student2.find({ yearofpassing: year });
+        res.json({
+          success: true,
+          data: { stu },
+        });
+
+      } else {
+        res.json({
+          success: false,
+          error: 'wrong role'
+        });
+      }
+
+    } else {
+      res.json({
+        success: false,
+        error: 'wrong token'
+      });
+    }
+  } catch (e) {
+    res.json({
+      success: false,
+      error: 'internal error'
+    });
+  }
+
+});
+
+router.get('/getYears', async (req, res) => {
+  try {
+    const distinctYears = await Student2.distinct('yearofpassing');
+    res.json({
+      success: true,
+      data: { years: distinctYears }
+    });
+  } catch (error) {
+    res.status(500).json({ error: 'An error occurred' });
+  }
+});
 
 module.exports = router;

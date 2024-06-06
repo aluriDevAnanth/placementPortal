@@ -22,10 +22,11 @@ const PlacementCornerSchema = new mongoose.Schema({
   shortlistedStudents: [String],
   placedStudents: [String],
   stages: {
-    onlineTest: [String],
-    GD: [String],
-    interview: [String],
-    otherStages: [String],
+    onlineTest: {},
+    GD: {},
+    interview: {},
+    HR: {},
+    otherStages: {}
   },
   stuFeed: {},
 }, {

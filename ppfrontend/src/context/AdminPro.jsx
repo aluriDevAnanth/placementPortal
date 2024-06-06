@@ -5,11 +5,10 @@ import AuthCon from './AuthPro';
 const AdminCon = createContext({});
 
 export function AdminPro({ children }) {
-  const years = ["2018", "2019"]
-  const [year, setYear] = useState({ curr: years.at(-1), years });
+  const [year, setYear] = useState({});
   const [mentors, setMentors] = useState([])
   const [comp, setComp] = useState([])
-  const [stu, setStu] = useState()
+  const [stu, setStu] = useState([])
   const [feed, setFeed] = useState()
   const { auth } = useContext(AuthCon)
 
@@ -38,15 +37,20 @@ export function AdminPro({ children }) {
   }
 
   async function fetchStudents() {
-    const response = await fetch(`http://localhost:3000/api/dean/getAllStudents`, {
-      method: "GET",
-      headers: {
-        "Content-Type": "application/json",
-        "Authorization": `Bearer ${auth}`,
-      },
-    });
-    const res = await response.json();
-    setStu(res.data.studentList)
+    try {
+      const response = await fetch(`http://localhost:3000/api/admin/getStu/${year.curr}`, {
+        method: 'GET',
+        headers: {
+          'Authorization': `Bearer ${auth}`,
+        },
+      });
+
+      const res = await response.json();
+      //console.log(res.data);
+      setStu(res.data.stu);
+    } catch (error) {
+      console.error(error);
+    }
   }
 
   async function fetchComp() {
@@ -62,14 +66,40 @@ export function AdminPro({ children }) {
     //console.log(comp)
   }
 
-  useEffect(() => {
-    if (auth !== undefined) {
-      fetchMentors(); fetchStudents(); fetchComp(); fetchFeed(); ``
+  const fetchYears = async () => {
+    try {
+      const response = await fetch(`http://localhost:3000/api/admin/getYears`, {
+        method: "GET",
+        headers: {
+          "Content-Type": "application/json",
+          "Authorization": `Bearer ${auth}`,
+        },
+      });
+      const res = await response.json();
+      if (res.data && res.data.years) {
+        const sortedYears = res.data.years.sort((a, b) => b - a);
+        //console.log(sortedYears);
+        setYear({ curr: sortedYears[0], years: sortedYears });
+      } else {
+        throw new Error('Unexpected response structure');
+      }
+    } catch (error) {
+      console.error('Error fetching years:', error);
     }
-  }, [])
+  };
+
+  useEffect(() => {
+    if (auth) {
+      fetchYears();
+    }
+  }, [auth]);
+
+  useEffect(() => {
+    if (auth && year.curr) { fetchStudents(); fetchMentors(); fetchComp(); fetchFeed(); }
+  }, [auth, year.curr])
 
   return (
-    <AdminCon.Provider value={{ year, mentors, stu, comp, feed }}>{children}</AdminCon.Provider>
+    <AdminCon.Provider value={{ year, setYear, mentors, stu, comp, feed, setStu }}>{children}</AdminCon.Provider>
   );
 }
 

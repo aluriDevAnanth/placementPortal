@@ -31,10 +31,12 @@ export default function ContactUs() {
       </div>
       <div>
         <div className='ms-3 bg-white p-3 rounded-4'>
-          <p className='fs-3 fw-bold'>Corporate Relations & Career Services:</p>
-          <a onClick={() => { navigator.clipboard.writeText("08632343020") }} className='mb-2 text-white btn btn-primary link-underline link-underline-opacity-0' href="tel:08632343020">Call 08632343020  <span className="badge text-bg-warning"> <i className="bi bi-clipboard"></i></span></a><br />
-          <a onClick={() => { navigator.clipboard.writeText("crcs.helpdesk@srmap.edu.in") }} href="mailto:crcs.helpdesk@srmap.edu.in" className='fs-6 btn btn-primary mb-3'>crcs.helpdesk@srmap.edu.in   <span className="badge text-bg-warning"> <i className="bi bi-clipboard"></i></span> </a>
-          <p className='fs-3 fw-bold mb-1'>Mentor Details:</p>
+          <p className='fs-3 fw-bold m-0'>Corporate Relations & Career Services:</p>
+          <ListGroup>
+            <ListGroup.Item>   Call 08632343020  </ListGroup.Item>
+            <ListGroup.Item> Email to crcs.helpdesk@srmap.edu.in   </ListGroup.Item>
+          </ListGroup>
+          <p className='fs-3 fw-bold mb-1 mt-3'>Mentor Details:</p>
           <ListGroup className=''>
             {men && Object.entries(men).map(([key, value], i) => {
               return (

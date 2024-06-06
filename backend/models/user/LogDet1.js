@@ -9,6 +9,6 @@ const logDetSchema = new mongoose.Schema({
     timestamps: true
 });
 
-const LogDet = mongoose.model('login_details2', logDetSchema);
+const LogDet = mongoose.model('login_details', logDetSchema);
 
 module.exports = LogDet;

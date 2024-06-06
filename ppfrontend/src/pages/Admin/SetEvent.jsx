@@ -1,7 +1,5 @@
 import React, { useContext, useState } from 'react';
-
 import AuthCon from '../../context/AuthPro';
-import Sidebar from './components/Sidebar';
 
 export default function SetEvent({ setShowSetEvent, fetchEvents }) {
   const [eventInfo, setEventInfo] = useState(null);
@@ -29,11 +27,12 @@ export default function SetEvent({ setShowSetEvent, fetchEvents }) {
         const rows = text.split('\n');
 
         students = rows.map((row) => {
-          const [name, rollno, email] = row.split(',');
-          return { name, rollno, email };
-        });
+          const a = row.split(',');
+          return a[0] !== 'rollno' ? a[0] : null;
+        }).filter((student) => student !== null);
 
-        // After processing the file data, proceed with sending the request
+        students = students.filter(q => { return q !== '' })
+        console.log(students);
         eventData = { name, des, startTime, endTime, rec, students };
         setEventInfo(eventData);
 
@@ -107,7 +106,7 @@ export default function SetEvent({ setShowSetEvent, fetchEvents }) {
           <div className='d-flex gap-5' >
             <div>
               <select required className='form-select col' style={{ width: '25rem' }} name="recurrence" >
-                <option value="" disabled selected>Select interval</option>
+                <option value="" disabled  >Select interval</option>
                 <option value="weekly">Once a Week</option>
                 <option value="daily">Once a day</option>
                 <option value="once">One Time</option>
@@ -123,27 +122,7 @@ export default function SetEvent({ setShowSetEvent, fetchEvents }) {
           </div>
         </form>
         <div className='mt-3'>
-          {eventInfo && eventInfo.students &&
-            <table className='table table-bordered table-striped table-hover '>
-              <thead>
-                <tr className='text-center' >
-                  <th>rollno</th>
-                  <th>name</th>
-                  <th>email</th>
-                </tr>
-              </thead>
-              <tbody>
-                {eventInfo.students.map((q, i) => {
-                  return <tr className='text-center' key={i}>
-                    <th>{q.rollno}</th>
-                    <th>{q.name}</th>
-                    <th>{q.email}</th>
-                  </tr>
-                })}
-              </tbody>
-
-            </table>
-          }
+          {eventInfo && eventInfo.students && <p>{eventInfo.students.length} add to {eventInfo.name} event</p>}
         </div>
       </div>
 
