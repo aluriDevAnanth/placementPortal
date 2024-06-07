@@ -64,7 +64,7 @@ export default function MentorFeedback() {
         "Content-Type": "application/json",
         "Authorization": `Bearer ${auth}`,
       },
-      body: JSON.stringify({ user, data: q }),
+      body: JSON.stringify({ user, data: q, year: year.curr }),
     });
 
     const res = await response.json();
@@ -91,7 +91,7 @@ export default function MentorFeedback() {
         "Content-Type": "application/json",
         "Authorization": `Bearer ${auth}`,
       },
-      body: JSON.stringify({ user, data: q }),
+      body: JSON.stringify({ user, data: q, year: year.curr }),
     });
 
     const res = await response.json();
@@ -223,7 +223,7 @@ export default function MentorFeedback() {
           <div className="container-fluid mt-4">
             <div className="rounded-3">
               <div className="p-3">
-                <DataTable emptyMessage="No FeedBack found." sortMode="multiple" sortField="name" sortOrder={-1} removableSort showGridlines stripedRows paginator rows={25} rowsPerPageOptions={[50]} paginatorTemplate="RowsPerPageDropdown FirstPageLink PrevPageLink CurrentPageReport NextPageLink LastPageLink" currentPageReportTemplate="{first} to {last} of {totalRecords}" size={'small'} value={MR} filterDisplay="row">
+                {students && <DataTable emptyMessage="No FeedBack found." sortMode="multiple" sortField="name" sortOrder={-1} removableSort showGridlines stripedRows paginator rows={25} rowsPerPageOptions={[50]} paginatorTemplate="RowsPerPageDropdown FirstPageLink PrevPageLink CurrentPageReport NextPageLink LastPageLink" currentPageReportTemplate="{first} to {last} of {totalRecords}" size={'small'} value={MR} filterDisplay="row">
                   <Column className="text-center" field="reviewtype" header="Type" filter sortable showFilterMenu={false} filterMatchMode="contains"></Column>
                   <Column className="text-center" field="jodRole" header="Rollno/Register No" filter sortable showFilterMenu={false}
                     filterMatchMode="contains"
@@ -231,10 +231,10 @@ export default function MentorFeedback() {
                       let rollnoContent = '';
                       if (data.reviewtype === 'group' && data.rollno) {
                         rollnoContent = data.rollno.split(',').map(rr => {
-                          return students[rr] ? students[rr].name : '';
+                          return students[rr]?.name;
                         }).join(', ');
                       } else if (data.rollno && students[data.rollno]) {
-                        rollnoContent = students[data.rollno].name;
+                        rollnoContent = students[data.rollno]?.name;
                       }
                       return <p>{rollnoContent}</p>;
                     }}
@@ -248,7 +248,7 @@ export default function MentorFeedback() {
                       disabled={isAfter(new Date(), addDays(data.createdAt, 1))}
                       onClick={() => { setEdit(data); }}>Edit</button></div>
                   }}></Column>
-                </DataTable>
+                </DataTable>}
               </div>
             </div>
           </div>

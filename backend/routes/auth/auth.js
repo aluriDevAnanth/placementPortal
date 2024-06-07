@@ -91,6 +91,7 @@ router.get('/auth', async (req, res) => {
 router.post('/login', async (req, res) => {
     try {
         const { username, password } = req.body;
+        // console.log(username, password);
         const pass = md5(password);
         if (username.substr(0, 2) === "AP") {
             const student = await LogDet.findOne({ username });

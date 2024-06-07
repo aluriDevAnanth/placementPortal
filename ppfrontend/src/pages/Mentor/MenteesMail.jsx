@@ -20,7 +20,10 @@ export default function MenteesMail() {
           </div>
           {students && <div className='flex-fill p-3 bg-white rounded-3' >
             {sel && <div className='mb-3'>
-              <button onClick={() => { navigator.clipboard.writeText(sel.map(q => { return q.email }).join(', ')) }} className="btn btn-primary mb-2">Click to Copy to Clipboard</button>
+              <div className='d-flex gap-2 align-items-center'>
+                <button onClick={() => { navigator.clipboard.writeText(sel.map(q => { return q.email }).join(', ')) }} className="btn btn-primary mb-2">Click to Copy to Clipboard</button>
+                <p>copy and paste these email into gmail TO field</p>
+              </div>
               <p>{sel.map(q => { return q.email }).join(', ')}</p>
             </div>}
             <DataTable value={Object.values(students)} selectionMode={rowClick ? null : 'checkbox'} selection={sel} onSelectionChange={(e) => setSel(e.value)} removableSort sortMode="multiple" sortField="name" sortOrder={1} emptyMessage="No Students found." paginator rows={10} rowsPerPageOptions={[25, 50]} filterDisplay="row">

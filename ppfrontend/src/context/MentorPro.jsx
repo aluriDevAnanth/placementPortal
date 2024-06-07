@@ -4,26 +4,30 @@ import AuthCon from './AuthPro';
 const MentorCon = createContext({});
 
 export function MentorPro({ children }) {
-  const years = ["2018", "2019"]
-  const [year, setYear] = useState({ curr: years.at(-1), years });
+  const [year, setYear] = useState({});
   const [students, setStudents] = useState()
   const { auth } = useContext(AuthCon)
 
-  async function fetchYears() {
-    const response = await fetch(`http://localhost:3000/api/mentor/getYears`, {
-      method: "GET",
-      headers: {
-        "Content-Type": "application/json",
-        "Authorization": `Bearer ${auth}`,
-      },
-    });
-    const res = await response.json();
-    if (res) {
-      let q = { curr: years.at(-1), years: years.slice().reverse() }
-      setYear(q)
-      //console.log(q)
+  const fetchYears = async () => {
+    try {
+      const response = await fetch(`http://localhost:3000/api/admin/getYears`, {
+        method: "GET",
+        headers: {
+          "Content-Type": "application/json",
+          "Authorization": `Bearer ${auth}`,
+        },
+      });
+      const res = await response.json();
+      if (res.data && res.data.years) {
+        const sortedYears = res.data.years.sort((a, b) => b - a);
+        setYear({ curr: sortedYears[0], years: sortedYears });
+      } else {
+        throw new Error('Unexpected response structure');
+      }
+    } catch (error) {
+      console.error('Error fetching years:', error);
     }
-  }
+  };
 
   async function fetchStudents() {
     const response1 = await fetch(`http://localhost:3000/api/mentor/getStudents/${year.curr}`, {
@@ -33,8 +37,8 @@ export function MentorPro({ children }) {
         "Authorization": `Bearer ${auth}`,
       },
     });
-    const res1 = await response1.json();
-    setStudents(res1.data.studentList)
+    const res = await response1.json();
+    setStudents(res.data?.studentList)
   }
 
   useEffect(() => {

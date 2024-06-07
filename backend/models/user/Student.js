@@ -20,7 +20,7 @@ const studentSchema2 = new mongoose.Schema({
   "12": String,
   name: String,
   rollno: String,
-  phone: Number,
+  phone: String,
   email: String,
   batch: String,
   personalemail: String,
@@ -39,7 +39,7 @@ const studentSchema2 = new mongoose.Schema({
   mentoremail: String,
   spec: String,
   skill: String,
-  yearofpassing: Number,
+  yearofpassing: String,
   school: String,
   enrollmentstatus: String,
 }, { timestamps: true });

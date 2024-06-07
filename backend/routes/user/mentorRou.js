@@ -15,6 +15,7 @@ const Schedule = require('../../models/user/Schedule')
 const PlacementCompany = require('../../models/user/PlacementCompany')
 const MentorReview = require('../../models/mentor/MentorReview')
 const PlacementCorner = require('../../models/user/PlacementCorner')
+const Event = require('../../models/user/Event')
 
 //use
 router.use(express.json());
@@ -25,25 +26,30 @@ router.get('/getStudents/:year', async (req, res) => {
     if (authHeader !== undefined) {
         token = authHeader.split(" ")[1];
     }
-
-    if (token) {
-        const { username, role } = jwt.verify(token, 'qwertyuiop');
-        if (role === "mentor") {
-            //console.log(req.params.year)
-            let studentList = await Student.find({ mentoremail: username, batch: req.params.year })
-            let qq = {};
-            studentList.map((q, i) => {
-                let w = q.rollno
-                qq[w] = q;
-            })
-            res.json({ success: true, data: { studentList: qq } });
+    try {
+        if (token) {
+            const { username, role } = jwt.verify(token, 'qwertyuiop');
+            if (role === "mentor") {
+                //console.log(req.params.year, username)
+                let studentList = await Student.find({ mentoremail: username, yearofpassing: parseInt(req.params.year) })
+                let qq = {};
+                studentList.map((q, i) => {
+                    let w = q.rollno
+                    qq[w] = q;
+                })
+                res.json({ success: true, data: { studentList: qq } });
+            }
+        } else {
+            res.json({
+                success: false,
+                error: 'error'
+            });
         }
-    } else {
-        res.json({
-            success: false,
-            error: 'error'
-        });
+    } catch (e) {
+        console.log(e);
+        res.json({ success: false, error: "internal server error" })
     }
+
 })
 
 router.post('/getAtt', async (req, res) => {
@@ -59,6 +65,39 @@ router.post('/getAtt', async (req, res) => {
         res.status(200).json({ success: true, data: { att } })
     } catch (e) {
         console.log(e);
+    }
+})
+
+router.post('/getEventAtt', async (req, res) => {
+    try {
+        let token;
+        const authHeader = req.headers["authorization"];
+        if (authHeader !== undefined) {
+            token = authHeader.split(" ")[1];
+        } else {
+            res.json({ success: false, message: 'token error' });
+        }
+        const { username, role } = jwt.verify(token, 'qwertyuiop');
+        if (token) {
+            let q = {};
+            let rollno = req.body.rollno;
+
+            // Use Promise.all to wait for all asynchronous operations to complete
+            await Promise.all(rollno.map(async qq => {
+                const att = await Event.find({ students: { $in: [qq] } });
+                q[qq] = att;
+            }));
+
+            console.log(q, rollno);
+            res.json({ success: true, data: { att: q } });
+
+        } else {
+            res.json({ success: false, message: 'token error' });
+        }
+
+    } catch (error) {
+        console.log(error);
+        res.json({ success: false, message: "server error" })
     }
 })
 
@@ -82,7 +121,7 @@ router.get('/getPC', async (req, res) => {
 router.get('/getMentorReview/:email/:year', async (req, res) => {
     try {
         const { email, year } = req.params;
-        const MR = await MentorReview.find({ mentoremail: email });
+        const MR = await MentorReview.find({ mentoremail: email, batch: year });
         res.json({ success: true, data: MR });
     } catch (error) {
         console.error(error);
@@ -90,7 +129,7 @@ router.get('/getMentorReview/:email/:year', async (req, res) => {
 })
 
 router.post('/uploadMFB', async (req, res) => {
-    const { user, data } = req.body;
+    const { user, data, year } = req.body;
     //console.log(data.reviewtype === 'individual')
     if (data.reviewtype === 'individual') {
         try {
@@ -104,6 +143,7 @@ router.post('/uploadMFB', async (req, res) => {
                 "contactperson": data.person,
                 "modeofcom": data.modeofcom,
                 "menreview": data.menreview,
+                "batch": year,
                 "uploadeddate": format(new Date(), "yyyy-MM-dd"),
                 "timestm": format(new Date(), "yyyy-MM-dd"),
             }
@@ -124,6 +164,7 @@ router.post('/uploadMFB', async (req, res) => {
                 "contactperson": data.reviewtype,
                 "modeofcom": data.modeofcom,
                 "menreview": data.menreview,
+                "batch": year,
                 "uploadeddate": format(new Date(data['meeting-time']), "yyyy-MM-dd"),
                 "timestm": new Date(),
             }
@@ -139,8 +180,7 @@ router.post('/uploadMFB', async (req, res) => {
 
 router.put('/updateMFB', async (req, res) => {
     const { id, user, data } = req.body;
-    //console.log(typeof (id), user, data)
-    //console.log(data.reviewtype === 'individual')
+    console.log(data);
     if (data.reviewtype === 'individual') {
         try {
             const MFB = {
@@ -153,15 +193,18 @@ router.put('/updateMFB', async (req, res) => {
                 "modeofcom": data.modeofcom,
                 "menreview": data.menreview,
                 "uploadeddate": data.uploadeddate,
-            }
+            };
             const MR = await MentorReview.findOneAndUpdate({ _id: id }, MFB, { new: true });
-            if (MR) { res.json({ success: true, data: MR }); }
-            else res.status(404).json({ success: false, error: "Document not found" });
-
+            if (MR) {
+                res.json({ success: true, data: MR });
+            } else {
+                res.status(404).json({ success: false, error: "Document not found" });
+            }
         } catch (error) {
             console.error(error);
+            res.status(500).json({ success: false, error: error.message });
         }
-    } /* else if (data.reviewtype === 'group') {
+    } else if (data.reviewtype === 'group') {
         try {
             const MFB = {
                 "sno": "",
@@ -169,22 +212,27 @@ router.put('/updateMFB', async (req, res) => {
                 "mentoremail": user.email,
                 "mentordept": user.dept,
                 "reviewtype": data.reviewtype,
-                "rollno": data.reviewtype,
-                "contactperson": data.menteesno,
+                "rollno": data.rollno,
+                "contactperson": data.contactperson,
                 "modeofcom": data.modeofcom,
                 "menreview": data.menreview,
-                "uploadeddate": format(new Date(data['meeting-time']), "yyyy-MM-dd"),
                 "timestm": new Date(),
+            };
+
+            const MR = await MentorReview.findOneAndUpdate({ _id: id }, MFB, { new: true });
+            if (MR) {
+                res.json({ success: true, data: MR });
+            } else {
+                res.status(404).json({ success: false, error: "Document not found" });
             }
-            const MR = await MentorReview.create(MFB);
-            res.json({ success: true, data: MR });
-            console.log(MR)
         } catch (error) {
             console.error(error);
+            res.status(500).json({ success: false, error: error.message });
         }
-    } */
-
-})
+    } else {
+        res.status(400).json({ success: false, error: "Invalid review type" });
+    }
+});
 
 router.get('/getCom/:year', async (req, res) => {
     let token;

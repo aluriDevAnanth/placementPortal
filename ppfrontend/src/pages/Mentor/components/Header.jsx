@@ -39,7 +39,7 @@ export default function Header() {
 								Select Batch: {year.curr}
 							</button>}
 							<ul className="dropdown-menu">
-								{year && year.years.map(q => {
+								{year && year.years && year.years.map(q => {
 									return <li key={q}><button className={`dropdown-item ${(q === '2018' && window.location.pathname === '/attendence') ? 'disabled' : ''} `} value={q} onClick={chgnYear}>{q}</button></li>
 								})}
 
@@ -49,7 +49,7 @@ export default function Header() {
 					<div className="collapse navbar-collapse me-4" id="navbarSupportedContent">
 						<div className="dropdown ">
 							<button className="btn dropdown-toggle rounded-3 text-white" style={{ backgroundColor: "#696747" }} type="button" data-bs-toggle="dropdown" aria-expanded="false">
-								{user.name}
+								{user.name == '' ? user.email : user.name}
 							</button>
 							<ul className="dropdown-menu">
 								<li><Link className="dropdown-item" to="/settings">Settings</Link></li>

@@ -13,8 +13,8 @@ const upload = multer({ dest: 'uploads/' });
 // Models
 const LogDet = require('../../models/user/LogDet1');
 const LogDet2 = require('../../models/user/LogDet');
-const Student = require('../../models/user/Student1');
-const Student2 = require('../../models/user/Student');
+const Student2 = require('../../models/user/Student1');
+const Student = require('../../models/user/Student');
 const Parent = require('../../models/user/Parent');
 const Mentor = require('../../models/user/Mentor');
 const Att = require('../../models/user/Att')
@@ -386,14 +386,14 @@ router.post('/addStu', upload.single('file'), async (req, res) => {
           const jsonData = xlsx.utils.sheet_to_json(workbook.Sheets[sheet_name_list[0]]);
           //console.log(jsonData[0]);
           for (let i of jsonData) {
-            const studentExists = await Student2.findOne({ rollno: i.rollno });
+            const studentExists = await Student.findOne({ rollno: i.rollno });
             if (!studentExists) {
-              await Student2.create({ ...i, yearofpassing: i['year of passing'] });
+              await Student.create({ ...i, yearofpassing: i['year of passing'] });
             }
-            const logExists = await LogDet2.findOne({ username: i.rollno });
+            const logExists = await LogDet.findOne({ username: i.rollno });
             if (!logExists) {
               const q = { username: i.rollno, password: md5(i.rollno), role: "student" };
-              await LogDet2.create(q);
+              await LogDet.create(q);
             }
           }
           res.json({
@@ -471,7 +471,7 @@ router.get('/getStu/:year', async (req, res) => {
       if (role === "admin") {
         const year = parseInt(req.params.year, 10);
         //console.log(year, typeof (year));
-        const stu = await Student2.find({ yearofpassing: year });
+        const stu = await Student.find({ yearofpassing: year });
         res.json({
           success: true,
           data: { stu },
@@ -501,14 +501,39 @@ router.get('/getStu/:year', async (req, res) => {
 
 router.get('/getYears', async (req, res) => {
   try {
-    const distinctYears = await Student2.distinct('yearofpassing');
-    res.json({
-      success: true,
-      data: { years: distinctYears }
-    });
+    console.log(11);
+    const distinctYears = await Student.distinct('yearofpassing');
+    console.log(distinctYears);
+    res.json({ success: true, data: { years: distinctYears } });
   } catch (error) {
     res.status(500).json({ error: 'An error occurred' });
   }
 });
+
+router.post('/postMentorThroughEmail', async (req, res) => {
+  let q = req.body.emails
+  console.log(q);
+  for (let i of q) {
+    let mentorExists = await Mentor.findOne({ where: { email: i } });
+
+    if (!mentorExists) {
+      await Mentor.create({
+        "name": "",
+        "email": i,
+        "cabin": "",
+        "dept": "",
+        "phoneno": "",
+        "role": "mentor"
+      });
+
+      await LogDet2.create({
+        "username": i,
+        "password": md5(i),
+        "role": "mentor",
+      });
+    }
+  }
+  res.json({ success: true, data: { q } })
+})
 
 module.exports = router;

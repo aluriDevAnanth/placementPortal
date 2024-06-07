@@ -14,7 +14,7 @@ export default function EditFeedback({ edit, setEdit, MR, setMR }) {
     for (let [key, value] of formData.entries()) {
       q[key] = value;
     }
-    console.log(q);
+    console.log('edited feed', q);
     try {
       const response = await fetch('http://localhost:3000/api/mentor/updateMFB/', {
         method: "PUT",
@@ -55,8 +55,9 @@ export default function EditFeedback({ edit, setEdit, MR, setMR }) {
         <Modal.Title>Edit Feedback</Modal.Title>
       </Modal.Header>
       <Modal.Body>
+        {console.log('feed', edit)}
         <Form onSubmit={upIndiFB} className='d-flex flex-column gap-2'>
-          <input type="text" name="reviewtype" value='individual' hidden readOnly />
+          <input type="text" name="reviewtype" value={edit.reviewtype} hidden readOnly />
           <input type="text" name="rollno" value={edit.rollno} hidden readOnly />
           <input type="text" name="rollno" value={edit.rollno} hidden readOnly />
           <input type="text" name="uploadeddate" value={edit.uploadeddate} hidden readOnly />
