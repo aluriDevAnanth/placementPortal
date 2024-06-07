@@ -3,8 +3,10 @@ import Sidebar from "./components/Sidebar";
 import AuthCon from "../../context/AuthPro";
 import MentorCon from "../../context/MentorPro";
 import { isAfter, parseISO, format, addDays } from 'date-fns'
-import { Accordion, Button, Form, Table, Tab, Nav, FloatingLabel } from 'react-bootstrap';
 import ListGroup from 'react-bootstrap/ListGroup';
+import { Accordion, Button, Form, Table, Tab, Nav, FloatingLabel } from 'react-bootstrap';
+
+
 import { DataTable } from 'primereact/datatable';
 import { Toast } from 'primereact/toast';
 import { Column } from 'primereact/column';
@@ -25,7 +27,7 @@ export default function CompanyDetails() {
       },
     });
     const res = await response.json();
-    //console.log(res.data);
+    console.log(res.data);
     setCom(res.data);
   }
 
@@ -46,73 +48,102 @@ export default function CompanyDetails() {
   };
 
   const rowExpansionTemplate = (q) => {
+    //console.log('stu', students);
+    const roll = Object.keys(students);
+    const set1 = new Set(roll);
+    const commEli = q.eligibleStudents.filter(item => set1.has(item));
+    const commApp = q.appliedStudents.filter(item => set1.has(item));
+
     return (
-      <ListGroup>
-        <ListGroup.Item>Job Role: {q.jodRole}</ListGroup.Item>
-        <ListGroup.Item>CTC: {q.CTC}</ListGroup.Item>
-        <ListGroup.Item>category: {q.category}</ListGroup.Item>
-        <ListGroup.Item>batch: {q.batch}</ListGroup.Item>
-        <ListGroup.Item>Eligible: {q.eligible}</ListGroup.Item>
-        <ListGroup.Item>Applied: {q.applied}</ListGroup.Item>
-        <ListGroup.Item> Date Of Visit:  {q.dateOfVisit ? format(parseISO(q.dateOfVisit), 'yyyy-MM-dd') : ''}</ListGroup.Item>
-        <ListGroup.Item> Eligible Students: {q.eligibleStudents && q.eligibleStudents.map((studentId, i) => {
-          const student = students[studentId];
-          return student ? <span key={i}>{student.name}, </span> : null;
-        })} </ListGroup.Item>
-        <ListGroup.Item> Applied Students: {q.appliedStudents && q.appliedStudents.map((studentId, i) => {
-          const student = students[studentId];
-          return student ? <span key={i}>{student.name}, </span> : null;
-        })} </ListGroup.Item>
-        <ListGroup.Item> Shortlisted Students: {q.shortlistedStudents && q.shortlistedStudents.map((studentId, i) => {
-          const student = students[studentId];
-          return student ? <span key={i}>{student.name}, </span> : null;
-        })} </ListGroup.Item>
-        <ListGroup.Item> Placed Students: {q.placedStudents && q.placedStudents.map((studentId, i) => {
-          const student = students[studentId];
-          return student ? <span key={i}>{student.name}, </span> : null;
-        })} </ListGroup.Item>
-        <ListGroup.Item>Mode Of Drive: {q.modeOfDrive}</ListGroup.Item>
-        <ListGroup.Item>Status Of Drive: {q.statusOfDrive}</ListGroup.Item>
-        <ListGroup.Item>
-          <p className='fs-4 fw-3'>Stages</p>
-          {students && Object.keys(q.stages).map((stageCategory, index) => (
-            <Accordion key={index} alwaysOpen>
-              <Accordion.Header> {stageCategory} - Total {Object.keys(q.stages[stageCategory]).filter(stageKey => Object.keys(students).includes(stageKey)).length} members </Accordion.Header>
-              <Accordion.Body>
-                <Table striped bordered hover responsive>
-                  <thead>
-                    <tr>
-                      <th>Name</th>
-                      <th>Roll No</th>
-                      <th>Email</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {Object.keys(q.stages[stageCategory]).map((rollNo, idx) => {
-                      const student = students[rollNo];
-                      if (student) {
-                        return (
-                          <tr key={idx}>
-                            <td>{student.name}</td>
-                            <td>{student.rollno}</td>
-                            <td>{student.email}</td>
-                            <td>{q.stages[stageCategory][rollNo]}</td>
-                          </tr>
-                        );
-                      } else {
-                        return null;
-                      }
-                    })}
-                  </tbody>
-                </Table>
-              </Accordion.Body>
-            </Accordion>
-          ))}
-        </ListGroup.Item>
-      </ListGroup>
+      students && (
+        <ListGroup>
+          <ListGroup.Item>Job Role: {q.jobRole}</ListGroup.Item>
+          <ListGroup.Item>CTC: {q.CTC}</ListGroup.Item>
+          <ListGroup.Item>Category: {q.category}</ListGroup.Item>
+          <ListGroup.Item>Batch: {q.batch}</ListGroup.Item>
+          <ListGroup.Item>Eligible: {commEli.length}</ListGroup.Item>
+          <ListGroup.Item>Applied: {commApp.length}</ListGroup.Item>
+          <ListGroup.Item>
+            Date Of Visit: {q.dateOfVisit ? format(parseISO(q.dateOfVisit), 'yyyy-MM-dd') : ''}
+          </ListGroup.Item>
+          <ListGroup.Item>
+            Eligible Students: {q.eligibleStudents &&
+              q.eligibleStudents.map((rollno, i) => {
+                const student = students[rollno];
+                return student ? <span key={i}>{student.name}, </span> : null;
+              })}
+          </ListGroup.Item>
+          <ListGroup.Item>
+            Applied Students: {q.appliedStudents &&
+              q.appliedStudents.map((rollno, i) => {
+                const student = students[rollno];
+                return student ? <span key={i}>{student.name}, </span> : null;
+              })}
+          </ListGroup.Item>
+          <ListGroup.Item>
+            Shortlisted Students: {q.shortlistedStudents &&
+              q.shortlistedStudents.map((rollno, i) => {
+                const student = students[rollno];
+                return student ? <span key={i}>{student.name}, </span> : null;
+              })}
+          </ListGroup.Item>
+          <ListGroup.Item>
+            Placed Students: {q.placedStudents &&
+              q.placedStudents.map((studentId, i) => {
+                const student = students[studentId];
+                return student ? <span key={i}>{student.name}, </span> : null;
+              })}
+          </ListGroup.Item>
+          <ListGroup.Item>Mode Of Drive: {q.modeOfDrive}</ListGroup.Item>
+          <ListGroup.Item>Status Of Drive: {q.driveStatus}</ListGroup.Item>
+          <ListGroup.Item>
+            <p className="fs-4 fw-3">Stages</p>
+            {students &&
+              Object.keys(q.stages).map((stageCategory, index) => (
+                <Accordion key={index} alwaysOpen>
+                  <Accordion.Header>
+                    {stageCategory} - Total{' '}
+                    {Object.keys(q.stages[stageCategory]).filter(stageKey =>
+                      Object.keys(students).includes(stageKey)
+                    ).length}{' '}
+                    members
+                  </Accordion.Header>
+                  <Accordion.Body>
+                    <Table striped bordered hover responsive>
+                      <thead>
+                        <tr>
+                          <th>Name</th>
+                          <th>Roll No</th>
+                          <th>Email</th>
+                          <th>Status</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {Object.keys(q.stages[stageCategory]).map((rollNo, idx) => {
+                          const student = students[rollNo];
+                          if (student) {
+                            return (
+                              <tr key={idx}>
+                                <td>{student.name}</td>
+                                <td>{student.rollno}</td>
+                                <td>{student.email}</td>
+                                <td>{q.stages[stageCategory][rollNo]}</td>
+                              </tr>
+                            );
+                          } else {
+                            return null;
+                          }
+                        })}
+                      </tbody>
+                    </Table>
+                  </Accordion.Body>
+                </Accordion>
+              ))}
+          </ListGroup.Item>
+        </ListGroup>
+      )
     );
   };
-
 
   return (
     user !== null && (

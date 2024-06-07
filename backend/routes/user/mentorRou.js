@@ -243,13 +243,11 @@ router.get('/getCom/:year', async (req, res) => {
 
     if (token) {
         const { username, role } = jwt.verify(token, 'qwertyuiop');
-        if (role === "mentor" || role === "parent" || role === "student") {
+        if (role === "mentor" || role === "parent" || role === "student" || role === "admin") {
             //console.log(req.params.year)
+            //console.log(role);
             const com = await PlacementCorner.find({ batch: req.params.year })
-            res.json({
-                success: true,
-                data: com
-            });
+            res.json({ success: true, data: com });
         }
     } else {
         res.json({

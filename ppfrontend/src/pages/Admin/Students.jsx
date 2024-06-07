@@ -167,9 +167,9 @@ export default function Students() {
         <Tooltip target=".export-buttons>button" position="bottom" />
         <Accordion alwaysOpen defaultActiveKey={year.curr}>
           <Accordion.Item eventKey={year.curr}>
-            <Accordion.Header> {year.curr} batch - {stu.length} students </Accordion.Header>
+            <Accordion.Header> {year.curr} batch - {Object.values(stu).length} students </Accordion.Header>
             <Accordion.Body >
-              <DataTable ref={dt} reorderableColumns resizableColumns size='small' value={stu} showGridlines stripedRows paginator rows={20} rowsPerPageOptions={[30, 50, 100, 200]} tableStyle={{ minWidth: '50rem' }} filterDisplay="row" emptyMessage="No Students found." removableSort sortField="name" sortOrder={1} editMode="row" onRowEditComplete={onRowEditComplete} header={header}>
+              <DataTable ref={dt} reorderableColumns resizableColumns size='small' value={Object.values(stu)} showGridlines stripedRows paginator rows={20} rowsPerPageOptions={[30, 50, 100, 200]} tableStyle={{ minWidth: '50rem' }} filterDisplay="row" emptyMessage="No Students found." removableSort sortField="name" sortOrder={1} editMode="row" onRowEditComplete={onRowEditComplete} header={header}>
                 <Column field='name' header='Name' sortable filter filterMatchMode="contains" className='text-center' showFilterMenu={false} editor={(options) => textEditor(options)} />
                 <Column field='rollno' header='Rollno' sortable filter filterMatchMode="contains" className='text-center' showFilterMenu={false} editor={(options) => textEditor(options)} />
                 <Column field='phone' header='phone' sortable filter filterMatchMode="contains" className='text-center' showFilterMenu={false} editor={(options) => textEditor(options)} />

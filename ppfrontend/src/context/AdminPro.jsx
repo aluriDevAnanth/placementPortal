@@ -47,14 +47,18 @@ export function AdminPro({ children }) {
 
       const res = await response.json();
       //console.log(res.data);
-      setStu(res.data.stu);
+      let s = {}
+      res.data.stu.map(q => {
+        s[q.rollno] = q
+      })
+      setStu(s);
     } catch (error) {
       console.error(error);
     }
   }
 
   async function fetchComp() {
-    const response = await fetch(`http://localhost:3000/api/dean/getAllComp`, {
+    const response = await fetch(`http://localhost:3000/api/mentor/getCom/${year.curr}`, {
       method: "GET",
       headers: {
         "Content-Type": "application/json",
@@ -62,8 +66,8 @@ export function AdminPro({ children }) {
       },
     });
     const res = await response.json();
-    setComp(res.data.compList)
-    //console.log(comp)
+    setComp(res.data)
+    //console.log('res.data', res.data);
   }
 
   const fetchYears = async () => {
