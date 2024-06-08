@@ -7,7 +7,8 @@ export default function Sidebar() {
       <Link className="fs-5 fw-3 nav-link active text-white" to="/">Home</Link><hr />
       <Link className="fs-5 fw-3 nav-link text-white" to="/setevent">Events</Link><hr />
       <Link className="fs-5 fw-3 nav-link text-white" to="/students">Students</Link><hr />
-      <Link className="fs-5 fw-3 nav-link text-white" to="/companies">Companies</Link>
+      <Link className="fs-5 fw-3 nav-link text-white" to="/companies">Companies</Link><hr />
+      <Link className="fs-5 fw-3 nav-link text-white" to="/attendence">Attendence</Link>
     </div>
 
   )

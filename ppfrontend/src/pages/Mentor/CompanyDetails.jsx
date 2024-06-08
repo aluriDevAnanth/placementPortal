@@ -156,15 +156,18 @@ export default function CompanyDetails() {
             <div className="flex-fill rounded-3 ms-3 border-primary me-3">
               <Toast ref={toast} />
               <DataTable size={'small'} value={com} className="p-datatable-striped p-datatable-hover" showGridlines stripedRows paginator rows={10} rowsPerPageOptions={[25, 50]} sortField="name" sortOrder={1} removableSort sortMode="multiple" filterDisplay="row" emptyMessage="No Company found." expandedRows={expandedRows} onRowToggle={(e) => setExpandedRows(e.data)} onRowExpand={onRowExpand} onRowCollapse={onRowCollapse} rowExpansionTemplate={rowExpansionTemplate}>
-                <Column expander={allowExpansion} style={{ width: '5rem' }} />
+                <Column expander={allowExpansion} style={{ width: '1rem' }} />
                 <Column field="name" header="Name" filter sortable showFilterMenu={false} filterMatchMode="contains" />
                 <Column field="dateOfVisit" header="Date Of Visit" filter sortable showFilterMenu={false} filterMatchMode="contains" body={(data, props) => { return <p> {format(parseISO(data.dateOfVisit), 'yyyy-MM-dd')}</p> }} />
                 <Column field="modeOfDrive" header="Mode Of Drive" filter sortable showFilterMenu={false} filterMatchMode="contains" />
-                <Column field="jodRole" header="Job Role" filter sortable showFilterMenu={false} filterMatchMode="contains" />
+                <Column field="jobRole" header="Job Role" filter sortable showFilterMenu={false} filterMatchMode="contains" />
                 <Column field="CTC" header="CTC" filter sortable showFilterMenu={false} filterMatchMode="contains" />
-                <Column field="eligible" header="Eligible" filter sortable showFilterMenu={false} filterMatchMode="contains" />
-                <Column field="applied" header="Applied" filter sortable showFilterMenu={false} filterMatchMode="contains" />
-                <Column field="shortlisted" header="Short Listed" filter sortable showFilterMenu={false} filterMatchMode="contains" />
+                <Column field="eligible" header="Eligible" filter sortable showFilterMenu={false} filterMatchMode="contains"
+                  body={(data, props) => { return <p> {data.eligibleStudents.length}</p> }} />
+                <Column field="applied" header="Applied" filter sortable showFilterMenu={false} filterMatchMode="contains"
+                  body={(data, props) => { return <p> {data.appliedStudents.length}</p> }} />
+                <Column field="shortlisted" header="Short Listed" filter sortable showFilterMenu={false} filterMatchMode="contains"
+                  body={(data, props) => { return <p> {data.shortlistedStudents.length}</p> }} />
               </DataTable>
             </div>
           </div>

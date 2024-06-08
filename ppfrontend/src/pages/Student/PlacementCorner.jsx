@@ -18,7 +18,7 @@ export default function PlacementCorner() {
       },
     });
     const res = await response.json();
-    //console.log([...res.data.comp]);
+    console.log([...res.data.comp]);
     setCompany([...res.data.comp]);
   }
 

@@ -259,46 +259,6 @@ router.post('/postEvent', async (req, res) => {
   }
 })
 
-router.post('/markAtt', async (req, res) => {
-  let token;
-  const authHeader = req.headers["authorization"];
-  if (authHeader !== undefined) {
-    token = authHeader.split(" ")[1];
-  }
-
-  if (token) {
-    const { username, role } = jwt.verify(token, 'qwertyuiop');
-    let { rollno } = await Event.find({ name: username })
-    if (role === "student") {
-      const { rand, eid } = req.body;
-      if (attToken == rand) {
-        let q = await Event.find({ _id: req.body.eid })
-        q.attendance[new Date()].push(rollno)
-        res.json({
-          success: true,
-          data: { message: "done", }
-        });
-      } else {
-        res.json({
-          success: false,
-          data: { message: "qr Exp" }
-        });
-      }
-    } else {
-      res.json({
-        success: false,
-        error: 'wrong role'
-      });
-    }
-
-  } else {
-    res.json({
-      success: false,
-      error: 'wrong token'
-    });
-  }
-})
-
 router.delete('/deleteEvent/:id', async (req, res) => {
   let token;
   const authHeader = req.headers["authorization"];
@@ -564,6 +524,110 @@ const xlsxToJson = async (filePath) => {
   return allSheetsData;
 };
 
+router.post("/markAtt", async (req, res) => {
+  const { qr_data, rollno } = req.body;
+  let token;
+  const authHeader = req.headers["authorization"];
+  if (authHeader !== undefined) {
+    token = authHeader.split(" ")[1];
+  }
+
+  if (token) {
+    try {
+      const sessionId = jwt.verify(qr_data, "qwertyuiop");
+      const { classId } = sessionId;
+      const CurrEvt = await Event.findById(classId);
+
+      if (!CurrEvt) {
+        return res
+          .status(404)
+          .json({ success: false, message: "Event not found" });
+      }
+
+      const today = new Date().toLocaleDateString("en-GB").split("/").join("-");
+      if (!CurrEvt.attendance[today]) {
+        CurrEvt.attendance[today] = [];
+      } else if (CurrEvt.attendance[today].includes(rollno)) {
+        return res.status(201).json({
+          success: false,
+          message: "Duplicate attendance found",
+        });
+      }
+      CurrEvt.attendance[today].push(rollno);
+
+      await Event.findByIdAndUpdate(
+        classId,
+        { attendance: CurrEvt.attendance },
+        { new: true }
+      );
+
+      return res.json({
+        success: true,
+        data: { message: "Attendance marked successfully" },
+      });
+    } catch (error) {
+      console.error(error);
+      return res.status(500).json({
+        success: false,
+        message: "QR verification failed",
+      });
+    }
+  } else {
+    return res.status(401).json({
+      success: false,
+      message: "Authorization token is missing or invalid",
+    });
+  }
+});
+
+router.post("/submitStdAtt", async (req, res) => {
+  const { roll_numbers, sessionid } = req.body;
+  console.log(roll_numbers, sessionid);
+
+  if (!roll_numbers || !sessionid) {
+    return res.status(400).json({
+      success: false,
+      message: "Roll numbers and session ID are required",
+    });
+  }
+
+  try {
+    const CurrEvt = await Event.findById(sessionid);
+
+    if (!CurrEvt) {
+      return res.status(404).json({
+        success: false,
+        message: "Event not found",
+      });
+    }
+
+    const today = new Date().toLocaleDateString("en-GB").split("/").join("-");
+
+    if (!CurrEvt.attendance[today]) {
+      CurrEvt.attendance[today] = [];
+    }
+
+    CurrEvt.attendance[today] = [...CurrEvt.attendance[today], ...roll_numbers];
+
+    await Event.findByIdAndUpdate(
+      sessionid,
+      { attendance: CurrEvt.attendance },
+      { new: true }
+    );
+
+    return res.json({
+      success: true,
+      data: { message: "Attendance marked successfully" },
+    });
+  } catch (error) {
+    console.error(error);
+    return res.status(500).json({
+      success: false,
+      message: "Failed to submit attendance",
+    });
+  }
+});
+
 router.post('/addCompBulk', upload.single('file'), async (req, res) => {
   try {
     // Check if token is provided in the request headers
@@ -617,26 +681,30 @@ router.post('/addCompBulk', upload.single('file'), async (req, res) => {
       }
 
       let valid = Object.keys(stages).map(s => { return q[s] !== null && s }).filter(stage => stage !== false)
-      console.log(q.name, 'valid', valid);
+      //console.log(q.name, valid[0], 'valid', valid);
 
-      for (let i of q.shortlistedStudents) {
-        if (q[valid[0]].includes(i)) {
-          stages.onlineTest[i] = 'cleared'
-        } else {
-          stages.onlineTest[i] = 'not cleared'
-        }
-      }
-
-      for (let i = 1; i < valid.length; i++) {
-        console.log(q.name);
-        for (let r of q[valid[i - 1]]) {
-          if (q[valid[i]].includes(r)) {
-            stages.onlineTest[r] = 'cleared'
+      if (valid.length !== 0) {
+        for (let i of q.shortlistedStudents) {
+          if (q[valid[0]].includes(i)) {
+            stages[valid[0]][i] = 'cleared'
           } else {
-            stages.onlineTest[r] = 'not cleared'
+            stages[valid[0]][i] = 'not cleared'
+          }
+        }
+
+        for (let i = 1; i < valid.length; i++) {
+          //console.log(q.name);
+          for (let r of q[valid[i - 1]]) {
+            if (q[valid[i]].includes(r)) {
+              stages[valid[i]][r] = 'cleared'
+            } else {
+              stages[valid[i]][r] = 'not cleared'
+            }
           }
         }
       }
+
+      //console.log(q.name, valid[0], q[valid[0]], stages);
 
       Object.keys(stages).map(s => {
         if (!(valid.includes(s))) {
@@ -646,13 +714,61 @@ router.post('/addCompBulk', upload.single('file'), async (req, res) => {
           stages[s] = 'not applicable'
         }
       })
+      q.stages = stages
+      console.log(q.name, stages);
+      //console.log(q.name, 'stages', stages); 
 
-      console.log(q.name, 'stages', stages);
-      let c = await PlacementCorner.create({ ...q, stages })
-      comp.push(c)
+      if (await PlacementCorner.findOne({ name: q.name })) {
+        let updatedDocument = await PlacementCorner.findOneAndUpdate({ name: q.name }, { ...q }, { new: true });
+        comp.push(updatedDocument);
+      } else {
+        let newDocument = await PlacementCorner.create({ ...q, stages });
+        comp.push(newDocument);
+      }
     })
 
     res.json({ success: true, data: { comp, jsonData } });
+
+    fs.unlink(file.path, (err) => {
+      if (err) {
+        console.error('Error deleting the file:', err);
+      } else {
+        console.log('Uploaded file deleted successfully');
+      }
+    });
+  } catch (error) {
+    console.error('Error processing file:', error);
+    res.status(500).json({ success: false, error: 'Error processing file' });
+  }
+});
+
+router.post('/addAttBulk', upload.single('file'), async (req, res) => {
+  try {
+    // Check if token is provided in the request headers
+    const authHeader = req.headers["authorization"];
+    if (!authHeader) {
+      return res.status(401).json({ success: false, error: 'Authorization token not provided' });
+    }
+    const token = authHeader.split(" ")[1];
+
+    // Verify the token and extract username and role
+    const { username, role } = jwt.verify(token, 'qwertyuiop');
+
+    // Check if the role is 'admin'
+    if (role !== "admin") {
+      return res.status(403).json({ success: false, error: 'Insufficient permissions' });
+    }
+
+    const file = req.file;
+    if (!file) {
+      return res.status(400).json({ success: false, error: 'No file uploaded' });
+    }
+
+    const jsonData = await xlsxToJson(file.path);
+
+    jsonData.rollno = jsonData.rollno.split('\n')
+
+    res.json({ success: true, data: { jsonData } });
 
     fs.unlink(file.path, (err) => {
       if (err) {

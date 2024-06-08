@@ -98,7 +98,6 @@ router.get('/getEventAtt/:rollno', async (req, res) => {
 
 router.get('/setComp/:batch', async (req, res) => {
   try {
-
     let token;
     const authHeader = req.headers["authorization"];
     if (authHeader !== undefined) {

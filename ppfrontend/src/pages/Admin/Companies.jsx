@@ -14,6 +14,22 @@ import { isAfter, parseISO, format, addDays } from 'date-fns'
 import { Accordion, Button, Form, Table, Tab, Nav, FloatingLabel } from 'react-bootstrap';
 import ListGroup from 'react-bootstrap/ListGroup';
 
+const ShortStu = ({ q, stus, students, ss }) => {
+  const stu = q[ss] ? q[ss].map(rollno => students[rollno]) : [];
+
+  //console.log(q, stus, students);
+
+  return (
+    <div>
+      <DataTable size={'small'} value={stu} className="p-datatable-striped p-datatable-hover" showGridlines stripedRows paginator rows={10} rowsPerPageOptions={[25, 50]} sortField="name" sortOrder={1} removableSort sortMode="multiple" filterDisplay="row" emptyMessage="No Company found." resizableColumns  >
+        <Column field="name" header="Name" filter sortable showFilterMenu={false} filterMatchMode="contains" />
+        <Column field="rollno" header="rollno" filter sortable showFilterMenu={false} filterMatchMode="contains" />
+        <Column field="email" header="email" filter sortable showFilterMenu={false} filterMatchMode="contains" />
+      </DataTable>
+    </div>
+  );
+};
+
 function CompanyDetails({ comp, students, year }) {
   const { user, auth } = useContext(AuthCon);
   const toast = useRef(null);
@@ -41,18 +57,18 @@ function CompanyDetails({ comp, students, year }) {
         <ListGroup.Item>Eligible: {q.eligibleStudents.length}</ListGroup.Item>
         <ListGroup.Item>Applied: {q.appliedStudents.length}</ListGroup.Item>
         <ListGroup.Item> Date Of Visit:  {q.dateOfVisit ? format(parseISO(q.dateOfVisit), 'yyyy-MM-dd') : ''}</ListGroup.Item>
-        <ListGroup.Item> Eligible Students: {q.eligibleStudents && q.eligibleStudents.map((rollno, i) => {
-          const student = students[rollno];
-          return student ? <span key={i}>{student.name}, </span> : null;
-        })} </ListGroup.Item>
-        <ListGroup.Item> Applied Students: {q.appliedStudents && q.appliedStudents.map((rollno, i) => {
-          const student = students[rollno];
-          return student ? <span key={i}>{student.name}, </span> : null;
-        })} </ListGroup.Item>
-        <ListGroup.Item> Shortlisted Students: {q.shortlistedStudents && q.shortlistedStudents.map((rollno, i) => {
-          const student = students[rollno];
-          return student ? <span key={i}>{student.name}, </span> : null;
-        })} </ListGroup.Item>
+        <ListGroup.Item>
+          <Accordion>
+            {["eligibleStudents", "appliedStudents", "shortlistedStudents"].map(ss => {
+              return <Accordion.Item key={ss} eventKey={ss}>
+                <Accordion.Header> {ss} - {Object.values(q[ss]).length} Students </Accordion.Header>
+                <Accordion.Body>
+                  <ShortStu ss={ss} stus={q[ss]} q={q} students={students} />
+                </Accordion.Body>
+              </Accordion.Item>
+            })}
+          </Accordion>
+        </ListGroup.Item>
         <ListGroup.Item> Placed Students: {q.placedStudents && q.placedStudents.map((studentId, i) => {
           const student = students[studentId];
           return student ? <span key={i}>{student.name}, </span> : null;
@@ -63,35 +79,9 @@ function CompanyDetails({ comp, students, year }) {
           <p className='fs-4 fw-3'>Stages</p>
           {students && Object.keys(q.stages).map((stageCategory, index) => (
             <Accordion key={index} alwaysOpen>
-              <Accordion.Header> {stageCategory} - Total {Object.keys(q.stages[stageCategory]).filter(stageKey => Object.keys(students).includes(stageKey)).length} members </Accordion.Header>
+              <Accordion.Header> {stageCategory} - Total {!(q.stages[stageCategory] === 'not applicable') ? Object.values(q.stages[stageCategory]).filter(q => q === 'cleared').length : q.stages[stageCategory]} members </Accordion.Header>
               <Accordion.Body>
-                <Table striped bordered hover responsive>
-                  <thead>
-                    <tr>
-                      <th>Name</th>
-                      <th>Roll No</th>
-                      <th>Email</th>
-                      <th>Status</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {Object.keys(q.stages[stageCategory]).map((rollNo, idx) => {
-                      const student = students[rollNo];
-                      if (student) {
-                        return (
-                          <tr key={idx}>
-                            <td>{student.name}</td>
-                            <td>{student.rollno}</td>
-                            <td>{student.email}</td>
-                            <td>{q.stages[stageCategory][rollNo]}</td>
-                          </tr>
-                        );
-                      } else {
-                        return null;
-                      }
-                    })}
-                  </tbody>
-                </Table>
+                <StageStuTable q={q} students={students} stageCategory={stageCategory} />
               </Accordion.Body>
             </Accordion>
           ))}
@@ -107,12 +97,11 @@ function CompanyDetails({ comp, students, year }) {
           <div className="d-flex">
             <div className="flex-fill rounded-3 ms-3 border-primary me-3">
               <Toast ref={toast} />
-              <DataTable size={'small'} value={comp} className="p-datatable-striped p-datatable-hover" showGridlines stripedRows paginator rows={10} rowsPerPageOptions={[25, 50]} sortField="name" sortOrder={1} removableSort sortMode="multiple" filterDisplay="row" emptyMessage="No Company found." expandedRows={expandedRows} onRowToggle={(e) => setExpandedRows(e.data)} onRowExpand={onRowExpand} onRowCollapse={onRowCollapse} rowExpansionTemplate={rowExpansionTemplate}>
+              <DataTable size={'small'} value={comp} className="p-datatable-striped p-datatable-hover" showGridlines stripedRows paginator rows={10} rowsPerPageOptions={[25, 50]} sortField="name" sortOrder={1} removableSort filterDisplay="row" emptyMessage="No Company found." expandedRows={expandedRows} onRowToggle={(e) => setExpandedRows(e.data)} onRowExpand={onRowExpand} onRowCollapse={onRowCollapse} rowExpansionTemplate={rowExpansionTemplate}>
                 <Column expander={allowExpansion} style={{ width: '2rem' }} />
                 <Column field="name" header="Name" filter sortable showFilterMenu={false} filterMatchMode="contains" />
                 <Column field="dateOfVisit" header="Date Of Visit" filter sortable showFilterMenu={false} filterMatchMode="contains" body={(data, props) => { return <p> {format(parseISO(data.dateOfVisit), 'yyyy-MM-dd')}</p> }} />
                 <Column field="modeOfDrive" header="Mode Of Drive" filter sortable showFilterMenu={false} filterMatchMode="contains" />
-                <Column field="jobRole" header="Job Role" filter sortable showFilterMenu={false} filterMatchMode="contains" />
                 <Column field="CTC" header="CTC" filter sortable showFilterMenu={false} filterMatchMode="contains" />
                 <Column field="eligible" header="Eligible" filter sortable showFilterMenu={false} filterMatchMode="contains"
                   body={(data, props) => { return <p> {data.eligibleStudents.length}</p> }} />
@@ -120,6 +109,11 @@ function CompanyDetails({ comp, students, year }) {
                   body={(data, props) => { return <p> {data.appliedStudents.length}</p> }} />
                 <Column field="shortlisted" header="Short Listed" filter sortable showFilterMenu={false} filterMatchMode="contains"
                   body={(data, props) => { return <p> {data.shortlistedStudents.length}</p> }} />
+                {["onlineTest", "GD", "interview1", "HR", "otherStages"].map((col, i) => (
+                  <Column key={col} field={col} header={col} body={(data, props) => { return <p> {!(data.stages[col] === 'not applicable') ? Object.values(data.stages[col]).filter(data => data === 'cleared').length : data.stages[col]}</p> }} />
+                ))}
+                <Column field="placedStudents" header="Final selected" filter sortable showFilterMenu={false} filterMatchMode="contains"
+                  body={(data, props) => { return <p> {data.placedStudents ? data.placedStudents.length : '-'}</p> }} />
               </DataTable>
             </div>
           </div>
@@ -128,6 +122,28 @@ function CompanyDetails({ comp, students, year }) {
     )
   );
 }
+
+const StageStuTable = ({ q, students, stageCategory }) => {
+  const data = Object.keys(q.stages[stageCategory]).map(rollNo => {
+    const student = students[rollNo];
+    return student ? {
+      name: student.name,
+      rollno: student.rollno,
+      email: student.email,
+      status: q.stages[stageCategory][rollNo]
+    } : null;
+  }).filter(item => item !== null);  // Filter out null values
+
+  return (
+    <DataTable value={data} showGridlines stripedRows paginator rows={10} rowsPerPageOptions={[25, 50]} sortField="name" sortOrder={1} removableSort filterDisplay="row" emptyMessage="No Students found." resizableColumns reorderableColumns  >
+      <Column className='text-center' field="name" header="Name" filter sortable showFilterMenu={false} filterMatchMode="contains" />
+      <Column className='text-center' field="rollno" header="Roll No" filter sortable showFilterMenu={false} filterMatchMode="contains" />
+      <Column className='text-center' field="email" header="Email" filter sortable showFilterMenu={false} filterMatchMode="contains" />
+      <Column className='text-center' field="status" header="Status" filter sortable showFilterMenu={false} filterMatchMode="contains" />
+    </DataTable>
+  );
+};
+
 
 export default function Companies() {
   const { auth } = useContext(AuthCon);
