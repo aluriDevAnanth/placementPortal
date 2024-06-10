@@ -7,6 +7,7 @@ export default function MentorSettings() {
   const { user, auth, setAuth, setUser } = useContext(AuthCon);
   const [err, setErr] = useState('');
   const [err2, setErr2] = useState('');
+  const baseURL = process.env.BASE_URL
 
   const mystyle = {
     backgroundColor: "#696747 !important",
@@ -22,7 +23,7 @@ export default function MentorSettings() {
       q[key] = value;
     }
 
-    const response = await fetch('http://localhost:3000/api/mentor/upDet/', {
+    const response = await fetch(`${baseURL}/mentor/upDet/`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
@@ -45,7 +46,7 @@ export default function MentorSettings() {
     }
 
     if (q.pass === q.cpass) {
-      const response = await fetch('http://localhost:3000/api/mentor/chgnPwd/', {
+      const response = await fetch(`${baseURL}/mentor/chgnPwd/`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",

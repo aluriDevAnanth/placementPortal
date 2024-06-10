@@ -12,10 +12,11 @@ function MyPractise() {
 	const { auth } = useContext(AuthCon);
 	const [prac, setPrac] = useState({});
 	const [load, setLoad] = useState(true);
+	const baseURL = process.env.BASE_URL
 
 	async function fetchPracDet() {
 		try {
-			const response = await fetch(`http://localhost:3000/api/student/getPracDet`, {
+			const response = await fetch(`${baseURL}/student/getPracDet`, {
 				method: "GET",
 				headers: {
 					"Content-Type": "application/json",
@@ -68,7 +69,7 @@ export default function MenteesPractiseDetails() {
 	};
 
 	async function fetchSchedule() {
-		const response = await fetch(`http://localhost:3000/api/mentor/getSchedule/${year.curr}`, {
+		const response = await fetch(`${baseURL}/mentor/getSchedule/${year.curr}`, {
 			method: "GET",
 			headers: {
 				"Content-Type": "application/json",

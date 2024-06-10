@@ -4,10 +4,11 @@ import AuthCon from '../../context/AuthPro';
 
 export default function StudentHome() {
   const { auth, user } = useContext(AuthCon);
+  const baseURL = process.env.BASE_URL
 
   const handleDownload = async () => {
     try {
-      const response = await fetch('http://localhost:3000/api/student/downloadPlacementPolicy');
+      const response = await fetch(`${baseURL}/student/downloadPlacementPolicy`);
       if (!response.ok) {
         throw new Error('Failed to download placement policy');
       }

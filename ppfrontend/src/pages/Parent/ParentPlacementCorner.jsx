@@ -8,9 +8,10 @@ export default function PlacementCorner() {
   const [company, setCompany] = useState();
   const [show, setShow] = useState(false);
   const [PP, setPP] = useState();
+  const baseURL = process.env.BASE_URL
 
   async function fetchCompanies() {
-    const response = await fetch(`http://localhost:3000/api/student/setComp/${user.batch}`, {
+    const response = await fetch(`${baseURL}/student/setComp/${user.batch}`, {
       method: "GET",
       headers: {
         "Content-Type": "application/json",
@@ -24,7 +25,7 @@ export default function PlacementCorner() {
 
   async function fetchStudentPlacementProgress() {
     const rollno = [user.rollno];
-    const response = await fetch(`http://localhost:3000/api/mentor/getStudentPlacementProgress/${user.batch}`, {
+    const response = await fetch(`${baseURL}/mentor/getStudentPlacementProgress/${user.batch}`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",

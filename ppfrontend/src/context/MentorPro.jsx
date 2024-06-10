@@ -7,10 +7,11 @@ export function MentorPro({ children }) {
   const [year, setYear] = useState({});
   const [students, setStudents] = useState()
   const { auth } = useContext(AuthCon)
+  const baseURL = process.env.BASE_URL
 
   const fetchYears = async () => {
     try {
-      const response = await fetch(`http://localhost:3000/api/admin/getYears`, {
+      const response = await fetch(`${baseURL}/admin/getYears`, {
         method: "GET",
         headers: {
           "Content-Type": "application/json",
@@ -30,7 +31,7 @@ export function MentorPro({ children }) {
   };
 
   async function fetchStudents() {
-    const response1 = await fetch(`http://localhost:3000/api/mentor/getStudents/${year.curr}`, {
+    const response1 = await fetch(`${baseURL}/mentor/getStudents/${year.curr}`, {
       method: "GET",
       headers: {
         "Content-Type": "application/json",

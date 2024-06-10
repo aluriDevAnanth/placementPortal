@@ -96,7 +96,7 @@ router.get('/getEventAtt/:rollno', async (req, res) => {
   }
 })
 
-router.get('/setComp/:batch', async (req, res) => {
+router.get('/getComp/:batch', async (req, res) => {
   try {
     let token;
     const authHeader = req.headers["authorization"];
@@ -121,41 +121,37 @@ router.get('/setComp/:batch', async (req, res) => {
 
 router.get('/getStuCompFeed/:year', async (req, res) => {
   try {
-    let token;
     const authHeader = req.headers["authorization"];
-    if (authHeader !== undefined) {
-      token = authHeader.split(" ")[1];
-    } else {
-      res.json({ success: false, message: 'token error' });
+    if (!authHeader) {
+      return res.json({ success: false, message: 'token error' });
     }
+
+    const token = authHeader.split(" ")[1];
+    if (!token) {
+      return res.json({ success: false, message: 'token error' });
+    }
+
     const { username: rollno, role } = jwt.verify(token, 'qwertyuiop');
-    if (token) {
-      const comp = await PlacementCorner.find({ batch: req.params.year });
-      const today = new Date();
 
-      //console.log("comp len ", comp.length);
+    const comp = await PlacementCorner.find({ batch: req.params.year });
+    const today = new Date();
 
-      let feed = comp.map((q, i) => {
-        if (q.eligibleStudents && q.eligibleStudents.includes(rollno) && isAfter(today, q.dateOfVisit)) {
-          return { ...q.toObject(), completed: Object.keys(q.stuFeed).includes(rollno) };
-        }
-      }).filter(Boolean);
-      //console.log("feed len", feed.length);
+    let feed = comp.map((q) => {
+      if (q.eligibleStudents && q.eligibleStudents.includes(rollno) && isAfter(today, q.dateOfVisit)) {
+        return { ...q.toObject(), completed: Object.keys(q.stuFeed).includes(rollno) };
+      }
+    }).filter(Boolean);
 
-      let completed = true;
-      feed.map((q, i) => {
-        completed = completed && q.completed
-      })
-      res.json({ success: true, data: { feed, completed } });
-    } else {
-      res.json({ success: false, message: 'token error' });
-    }
+    let completed = feed.every(q => q.completed);
+
+    return res.json({ success: true, data: { feed, completed } });
 
   } catch (error) {
     console.log(error);
-    res.status(400).json({ success: false, message: "server error" })
+    return res.status(400).json({ success: false, message: "server error" });
   }
-})
+});
+
 
 router.post('/postStuCompFeed', async (req, res) => {
   try {

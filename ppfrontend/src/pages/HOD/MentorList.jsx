@@ -7,9 +7,10 @@ import { Column } from 'primereact/column';
 export default function MentorList() {
   const { auth } = useContext(AuthCon)
   const [men, setMen] = useState()
+  const baseURL = process.env.BASE_URL
 
   async function getMentorList() {
-    const response = await fetch(`http://localhost:3000/api/hod/getMentorList`, {
+    const response = await fetch(`${baseURL}/hod/getMentorList`, {
       method: "GET",
       headers: {
         "Content-Type": "application/json",

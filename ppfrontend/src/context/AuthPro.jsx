@@ -6,10 +6,11 @@ const AuthCon = createContext({});
 export function AuthPro({ children }) {
     const [auth, setAuth] = useState(Cookies.get("token"));
     const [user, setUser] = useState(null);
+    const baseURL = process.env.BASE_URL
 
     async function fetchUser() {
         try {
-            const response = await fetch('http://localhost:3000/api/auth', {
+            const response = await fetch(`${baseURL}/auth`, {
                 method: "GET",
                 headers: {
                     "Content-Type": "application/json",

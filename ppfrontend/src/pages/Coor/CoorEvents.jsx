@@ -9,9 +9,10 @@ import Sidebar from './components/Sidebar';
 export default function Events() {
   const { auth } = useContext(AuthCon);
   const [events, setEvents] = useState([]);
+  const baseURL = process.env.BASE_URL
 
   async function fetchEvents() {
-    const response = await fetch('http://localhost:3000/api/admin/getEvents', {
+    const response = await fetch(`${baseURL}/admin/getEvents`, {
       method: "GET",
       headers: {
         "Content-Type": "application/json",

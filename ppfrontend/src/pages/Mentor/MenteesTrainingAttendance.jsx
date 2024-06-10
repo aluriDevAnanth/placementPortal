@@ -16,11 +16,12 @@ export default function MenteesTrainingAttendance() {
 	const [att, setAtt] = useState()
 	const [totalAtt, setTotalAtt] = useState()
 	const [eventAtt, setEventAtt] = useState();
+	const baseURL = process.env.BASE_URL
 
 	const fetchAtt = async () => {
 		const rollno = Object.keys(students);
 		if (rollno.length > 0) {
-			const response = await fetch("http://localhost:3000/api/mentor/getAtt", {
+			const response = await fetch(`${baseURL}/mentor/getAtt`, {
 				method: "POST",
 				headers: {
 					"Content-Type": "application/json",
@@ -56,7 +57,7 @@ export default function MenteesTrainingAttendance() {
 	const fetchEventAtt = async () => {
 		let rollno = Object.keys(students);
 		try {
-			const response = await fetch(`http://localhost:3000/api/mentor/getEventAtt`, {
+			const response = await fetch(`${baseURL}/mentor/getEventAtt`, {
 				method: "POST",
 				headers: {
 					"Content-Type": "application/json",

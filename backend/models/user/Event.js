@@ -9,7 +9,7 @@ const eventScheme = new mongoose.Schema({
   students: [],
   attendance: {}
 }, {
-  timestamps: true
+  timestamps: true, minimize: false
 });
 
 const event = mongoose.model('events', eventScheme);

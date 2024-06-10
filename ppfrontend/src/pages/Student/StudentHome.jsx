@@ -2,10 +2,12 @@ import React, { useContext, useState, useEffect } from 'react';
 import Sidebar from './components/Sidebar';
 import Table from 'react-bootstrap/Table';
 import AuthCon from '../../context/AuthPro';
+import { format, isBefore, parseISO } from 'date-fns'
 
 export default function StudentHome() {
   const { auth, user } = useContext(AuthCon);
-  const [com, setCom] = useState([]);
+  const [comp, setComp] = useState([]);
+  const baseURL = process.env.BASE_URL
 
   useEffect(() => {
     if (user.batch) fetchCom();
@@ -13,7 +15,7 @@ export default function StudentHome() {
 
   async function fetchCom() {
     try {
-      const response = await fetch(`http://localhost:3000/api/student/getCom/${user.batch}`, {
+      const response = await fetch(`${baseURL}/student/getComp/${user.yearofpassing}`, {
         method: "GET",
         headers: {
           "Content-Type": "application/json",
@@ -21,42 +23,39 @@ export default function StudentHome() {
         },
       });
       const res = await response.json();
-      let q = [];
-      let w = [];
-      res.data.forEach(qq => {
-        if (qq.arrival === 'expected') {
-          q.push(qq);
-        } else {
-          w.push(qq);
-        }
-      });
-      //console.log(w);
-      setCom([q, w]);
+      setComp(res.data.comp);
+      console.log('Fetched data:', res.data, user.yearofpassing);
     } catch (error) {
       console.error("Error fetching data:", error);
     }
   }
 
   useEffect(() => {
-    if (com[1]) {
-      var table = $('#example').DataTable({
-        orderCellsTop: true, destroy: true,
+    if (comp.length > 0) {
+      const table = $('#example').DataTable({
+        orderCellsTop: true,
+        destroy: true,
         initComplete: function () {
           $('#example thead tr:eq(1) th.text_search').each(function () {
-            var title = $(this).text();
-            $(this).html(`<input type="text" placeholder="${title}" class="form-control column_search" />`);
+            const title = $(this).text();
+            $(this).html(`<input type="text" placeholder="Search ${title}" class="form-control column_search" />`);
           });
 
+          $('#example thead').on('keyup', ".column_search", function () {
+            table
+              .column($(this).parent().index())
+              .search(this.value)
+              .draw();
+          });
         }
       });
-      $('#example thead').on('keyup', ".column_search", function () {
-        table
-          .column($(this).parent().index())
-          .search(this.value)
-          .draw();
-      });
+
+      // Cleanup function to destroy the table instance on component unmount
+      return () => {
+        table.destroy();
+      };
     }
-  }, [com[1]]);
+  }, [comp]);
 
   return (
     <div className='container-fluid d-flex'>
@@ -87,17 +86,22 @@ export default function StudentHome() {
               </tr>
             </thead>
             <tbody>
-              {com[1] && com[1].map((q, i) => (
-                <tr className='text-center' key={i}>
-                  <td>{i + 1}</td>
-                  <td>{q.name}</td>
-                  <td>{q.category}</td>
-                  <td>CSE</td>
-                  <td>{q.dateofvisit}</td>
-                </tr>
-              ))}
+              {comp.map((q, i) => {
+                const dateOfVisit = parseISO(q.dateOfVisit);
+                //console.log(q.name, isBefore(new Date(), dateOfVisit));
+                return (
+                  isBefore(new Date(), dateOfVisit) && (
+                    <tr className='text-center' key={i}>
+                      <td>{i + 1}</td>
+                      <td>{q.name}</td>
+                      <td>{q.category}</td>
+                      <td>{q.branches.join(', ')}</td>
+                      <td>{format(dateOfVisit, 'dd-MM-yyyy')}</td>
+                    </tr>
+                  )
+                );
+              })}
             </tbody>
-
           </Table>
         </div>
       </div>

@@ -11,6 +11,8 @@ import { DataTable } from 'primereact/datatable';
 import { Toast } from 'primereact/toast';
 import { Column } from 'primereact/column';
 
+const baseURL = process.env.BASE_URL
+
 export default function CompanyDetails() {
   const { user, auth } = useContext(AuthCon);
   const { students, year } = useContext(MentorCon);
@@ -19,7 +21,7 @@ export default function CompanyDetails() {
   const [com, setCom] = useState();
 
   async function fetchCompanies() {
-    const response = await fetch(`http://localhost:3000/api/mentor/getCom/${year.curr}`, {
+    const response = await fetch(`${baseURL}/mentor/getCom/${year.curr}`, {
       method: "GET",
       headers: {
         "Content-Type": "application/json",

@@ -20,9 +20,10 @@ const schema = Yup.object().shape({
 
 export default function StuCompFeed({ SCF, completed, setSCF, fetchStuCompFeed }) {
   const { user, auth } = useContext(AuthCon)
+  const baseURL = process.env.BASE_URL
 
   async function subSCF(values, { resetForm }, name) {
-    const response = await fetch(`http://localhost:3000/api/student/postStuCompFeed`, {
+    const response = await fetch(`${baseURL}/student/postStuCompFeed`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
@@ -58,9 +59,7 @@ export default function StuCompFeed({ SCF, completed, setSCF, fetchStuCompFeed }
                   {q.completed && <div className='m-0 p-2 alert alert-success w-25 text-center'>Done Feedback submit!</div>}
                   {!q.completed ? <div className='mt-3'>
                     <Formik
-                      initialValues={{
-                        noOfRounds: "", didGD: "", GDTopic: "", QR1: [""], QRT: [""], QRHR: [""],
-                      }}
+                      initialValues={{ noOfRounds: "", didGD: "", GDTopic: "", QR1: [""], QRT1: [""], QRT2: [""], QRT3: [""], QRHR: [""], }}
                       validationSchema={schema}
                       onSubmit={(values, formikBag) => {
                         subSCF(values, formikBag, q.name);
@@ -118,20 +117,80 @@ export default function StuCompFeed({ SCF, completed, setSCF, fetchStuCompFeed }
                             )}
                           </FieldArray>
 
-                          <FieldArray name="QRT">
+                          <FieldArray name="QRT1">
                             {({ push, remove, swap }) => (
                               < >
-                                <h4>Questions for technical round</h4>
+                                <h4>Questions for technical round 1</h4>
                                 <div>
-                                  {values.QRT.map((ques, index) => (
+                                  {values.QRT1.map((ques, index) => (
                                     <div key={index} className='d-flex  '>
-                                      <Field className="  " name={`QRT.${index}`}>
+                                      <Field className="  " name={`QRT1.${index}`}>
+                                        {({ field }) => (
+                                          <div className='flex-fill me-3'>
+                                            <FloatingLabel controlId="floatingInput" label={`Techinal Round 1 Question ${index + 1}`} className="mb-3" >
+                                              <input className='form-control' {...field} type="text" />
+                                            </FloatingLabel>
+                                            {errors.QRT1 && errors.QRT1[index] && <p className='ms-3 text-danger fw-bold'>{errors.QRT1[index]}</p>}
+                                          </div>
+                                        )}
+                                      </Field>
+                                      <div>
+                                        <Button className='me-3' variant="primary" onClick={() => push('')} > + </Button>
+                                        <Button className='me-3' variant="secondary" onClick={() => index > 0 && swap(index, index - 1)} > ↑ </Button>
+                                        <Button className='me-3' variant="secondary" onClick={() => index < values.QRT.length - 1 && swap(index, index + 1)} > ↓ </Button>
+                                        <Button className='me-3' variant="danger" onClick={() => remove(index)}> - </Button>
+                                      </div>
+                                    </div>
+                                  ))}
+                                </div>
+                              </>
+                            )}
+                          </FieldArray>
+
+                          <FieldArray name="QRT2">
+                            {({ push, remove, swap }) => (
+                              < >
+                                <h4>Questions for technical round 2</h4>
+                                <div>
+                                  {values.QRT2.map((ques, index) => (
+                                    <div key={index} className='d-flex  '>
+                                      <Field className="  " name={`QRT2.${index}`}>
+                                        {({ field }) => (
+                                          <div className='flex-fill me-3'>
+                                            <FloatingLabel controlId="floatingInput" label={`Techinal Round 2 Question ${index + 1}`} className="mb-3" >
+                                              <input className='form-control' {...field} type="text" />
+                                            </FloatingLabel>
+                                            {errors.QRT2 && errors.QRT2[index] && <p className='ms-3 text-danger fw-bold'>{errors.QRT2[index]}</p>}
+                                          </div>
+                                        )}
+                                      </Field>
+                                      <div>
+                                        <Button className='me-3' variant="primary" onClick={() => push('')} > + </Button>
+                                        <Button className='me-3' variant="secondary" onClick={() => index > 0 && swap(index, index - 1)} > ↑ </Button>
+                                        <Button className='me-3' variant="secondary" onClick={() => index < values.QRT.length - 1 && swap(index, index + 1)} > ↓ </Button>
+                                        <Button className='me-3' variant="danger" onClick={() => remove(index)}> - </Button>
+                                      </div>
+                                    </div>
+                                  ))}
+                                </div>
+                              </>
+                            )}
+                          </FieldArray>
+
+                          <FieldArray name="QRT3">
+                            {({ push, remove, swap }) => (
+                              < >
+                                <h4>Questions for technical round 3</h4>
+                                <div>
+                                  {values.QRT3.map((ques, index) => (
+                                    <div key={index} className='d-flex  '>
+                                      <Field className="  " name={`QRT3.${index}`}>
                                         {({ field }) => (
                                           <div className='flex-fill me-3'>
                                             <FloatingLabel controlId="floatingInput" label={`Techinal Round Question ${index + 1}`} className="mb-3" >
                                               <input className='form-control' {...field} type="text" />
                                             </FloatingLabel>
-                                            {errors.QRT && errors.QRT[index] && <p className='ms-3 text-danger fw-bold'>{errors.QRT[index]}</p>}
+                                            {errors.QRT3 && errors.QRT3[index] && <p className='ms-3 text-danger fw-bold'>{errors.QRT3[index]}</p>}
                                           </div>
                                         )}
                                       </Field>

@@ -5,6 +5,7 @@ import AuthCon from '../../context/AuthPro'
 export default function DeanSettings() {
   const [err, setErr] = useState()
   const { auth } = useContext(AuthCon)
+  const baseURL = process.env.BASE_URL
 
   async function handlePassChange(e) {
     e.preventDefault();
@@ -23,7 +24,7 @@ export default function DeanSettings() {
     } else {
       try {
         setErr(null);
-        const response = await fetch(`http://localhost:3000/api/dean/chgnPwd`, {
+        const response = await fetch(`${baseURL}/dean/chgnPwd`, {
           method: "PUT",
           headers: {
             "Content-Type": "application/json",

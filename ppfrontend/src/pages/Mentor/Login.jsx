@@ -1,14 +1,21 @@
-import React, { useContext, useState } from 'react'
+import React, { useContext, useState, useRef } from 'react'
 import logo from '/img/3.png';
 import Cookies from 'js-cookie';
 import AuthCon from '../../context/AuthPro';
 import { useNavigate } from 'react-router-dom';
+import Spinner from 'react-bootstrap/Spinner';
+import { Toast } from 'primereact/toast';
 
 export default function Login() {
     const { setAuth, setUser } = useContext(AuthCon)
     const [err, setErr] = useState('')
     const [show, setShow] = useState(1)
+    const [otp, setOTP] = useState()
+    const [email, setEmail] = useState()
+    const [load, setLoad] = useState(false)
     const navi = useNavigate()
+    const toast = useRef(null);
+    const baseURL = process.env.BASE_URL
 
     const handlelogin = async (e) => {
         e.preventDefault();
@@ -22,7 +29,7 @@ export default function Login() {
 
         const { username, password } = q;
 
-        const response = await fetch('http://localhost:3000/api/login', {
+        const response = await fetch(`${baseURL}/login`, {
             method: "POST",
             headers: {
                 "Content-Type": "application/json",
@@ -30,7 +37,7 @@ export default function Login() {
             body: JSON.stringify({ username, password }),
         });
         const res = await response.json();
-        console.log(res);
+        //console.log(res);
         if (res.success) {
             Cookies.set('token', res.jwt, { expires: 3 })
             setAuth(Cookies.get("token"))
@@ -44,12 +51,12 @@ export default function Login() {
     function handlechngpwd() {
         const id = document.getElementById('floatingInput').value
         setShow(2)
-        console.log(id)
+        //console.log(id)
     }
 
     async function handleForgotPassword(e) {
         e.preventDefault();
-
+        setLoad(true)
         const formData = new FormData(e.currentTarget);
         let q = {};
 
@@ -57,9 +64,11 @@ export default function Login() {
             q[key] = value;
         }
 
-        const { email } = q; console.log(q);
+        const { email1 } = q;
+        //console.log(q);
+        setEmail(email1)
 
-        const response = await fetch('http://localhost:3000/api/sendOTP', {
+        const response = await fetch(`${baseURL}/sendOTP`, {
             method: "POST",
             headers: {
                 "Content-Type": "application/json",
@@ -68,12 +77,51 @@ export default function Login() {
         });
 
         const res = await response.json();
-        console.log(res);
+        if (res.success) {
+            console.log(res.data.otp);
+            setOTP(res.data.otp)
+        }
+        setLoad(false)
+    }
 
+    async function subOTP(e) {
+        e.preventDefault();
+        setLoad(true)
+        const formData = new FormData(e.currentTarget);
+        let q = {};
+
+        for (let [key, value] of formData.entries()) {
+            q[key] = value;
+        }
+
+        const { otp1, pass, cpass } = q;
+
+        if (pass !== cpass) {
+            toast.current.show({ severity: 'error', summary: 'Error', detail: 'Password do not match', life: 6000 });
+            return;
+        }
+        if (otp === otp1) {
+            const response = await fetch(`${baseURL}/changePass`, {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                },
+                body: JSON.stringify({ username: email, pass }),
+            });
+
+            const res = await response.json();
+            await toast.current.show({ severity: 'success', summary: 'Success', detail: 'Password Changed', life: 6000 });
+            location.reload();
+            //console.log(res);
+        } else {
+            toast.current.show({ severity: 'error', summary: 'Error', detail: 'Wrong OTP', life: 6000 });
+            return;
+        }
     }
 
     return (
         <div className='container-fluid bgimg'>
+            <Toast ref={toast} />
             <div className="col-6 col-sm-1 col-md-1">
                 <img src={logo} className="" style={{ width: "250px !important" }} alt="Responsive image" />
             </div>
@@ -102,21 +150,44 @@ export default function Login() {
                         </div>
 
                     </form>}
-                    {show == 2 && <form onSubmit={handleForgotPassword}>
-                        <div className="form-floating mb-3">
-                            <input name='email' className="form-control" id="floatingInput" placeholder="name@example.com" />
-                            <label htmlFor="floatingInput">Enter Email for OTP</label>
-                        </div>
-                        <div className='d-flex'>
-                            <div>
-                                <button type="submit" className="btn btn-primary me-5">Submit</button>
+                    {show == 2 && <div >
+                        {!load && !otp ? <form onSubmit={handleForgotPassword}>
+                            <div className="form-floating mb-3">
+                                <input name='email1' className="form-control" id="floatingInput" placeholder="name@example.com" />
+                                <label htmlFor="floatingInput">Enter Email or rollno for OTP</label>
                             </div>
-                            {err !== '' && <div className="alert alert-danger" role="alert">
-                                {err}
-                            </div>}
-                        </div>
+                            <div className='d-flex'>
+                                <div>  <button type="submit" className="btn btn-primary me-5">Submit</button>   </div>
+                                {err !== '' && <div className="alert alert-danger" role="alert">  {err}  </div>}
+                            </div>
 
-                    </form>}
+                        </form> : <div className='d-flex justify-content-center'>
+                            {!otp && <Spinner animation="border" role="status">
+                                <span className="visually-hidden">Loading...</span>
+                            </Spinner>}
+                        </div>}
+                        {otp && <div>
+                            <form onSubmit={subOTP}>
+                                <div className="form-floating mb-3">
+                                    <input name='otp1' className="form-control" id="floatingInput" />
+                                    <label htmlFor="floatingInput">Enter OTP</label>
+                                </div>
+                                <div className="form-floating mb-3">
+                                    <input name='pass' className="form-control" id="floatingInput" />
+                                    <label htmlFor="floatingInput">Enter Password</label>
+                                </div>
+                                <div className="form-floating mb-3">
+                                    <input name='cpass' className="form-control" id="floatingInput" />
+                                    <label htmlFor="floatingInput">Enter Confirm Password</label>
+                                </div>
+                                <div className='d-flex'>
+                                    <div>  <button type="submit" className="btn btn-primary me-5">Submit</button>   </div>
+                                    {err !== '' && <div className="alert alert-danger" role="alert">  {err}  </div>}
+                                </div>
+                            </form>
+                        </div>}
+                    </div>
+                    }
                 </div>
             </div>
 

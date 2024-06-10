@@ -6,9 +6,10 @@ import AuthCon from '../../context/AuthPro'
 export default function ContactUs() {
   const [men, setMen] = useState()
   const { auth } = useContext(AuthCon)
+  const baseURL = process.env.BASE_URL
 
   async function fetchMentorDetails() {
-    const response = await fetch(`http://localhost:3000/api/parent/getMentorDetails`, {
+    const response = await fetch(`${baseURL}/parent/getMentorDetails`, {
       method: "GET",
       headers: {
         "Content-Type": "application/json",
@@ -17,7 +18,7 @@ export default function ContactUs() {
     });
     const res = await response.json();
     const { _id, __v, role, sno, dept, ...cleanedData } = res.data.men;
-    console.log(cleanedData);
+    //console.log(cleanedData);
     setMen(cleanedData)
   }
 

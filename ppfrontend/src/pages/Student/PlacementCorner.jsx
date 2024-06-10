@@ -8,9 +8,10 @@ export default function PlacementCorner() {
   const [company, setCompany] = useState();
   const [show, setShow] = useState(false);
   const [PP, setPP] = useState();
+  const baseURL = process.env.BASE_URL
 
   async function fetchCompanies() {
-    const response = await fetch(`http://localhost:3000/api/student/setComp/${user.batch}`, {
+    const response = await fetch(`${baseURL}/student/getComp/${user.yearofpassing}`, {
       method: "GET",
       headers: {
         "Content-Type": "application/json",
@@ -18,13 +19,13 @@ export default function PlacementCorner() {
       },
     });
     const res = await response.json();
-    console.log([...res.data.comp]);
+    console.log('res.data.comp', [...res.data.comp]);
     setCompany([...res.data.comp]);
   }
 
   async function fetchStudentPlacementProgress() {
     const rollno = [user.rollno];
-    const response = await fetch(`http://localhost:3000/api/mentor/getStudentPlacementProgress/${user.batch}`, {
+    const response = await fetch(`${baseURL}/mentor/getStudentPlacementProgress/${user.yearofpassing}`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
@@ -34,7 +35,7 @@ export default function PlacementCorner() {
     });
     const res = await response.json();
     setPP(res.data);
-    console.log(res.data);
+    //console.log(res.data);
   }
 
   useEffect(() => {
@@ -101,7 +102,9 @@ export default function PlacementCorner() {
               <th>Eligible Companies </th>
               <th>Applied Companies </th>
               <th>Shortlisted Companies </th>
-              <th>Online Test</th>
+              <th>Online Test 1</th>
+              <th>Online Test 2</th>
+              <th>Online Test 3</th>
               <th>GD</th>
               <th>Interview</th>
               <th>HR</th>
@@ -123,7 +126,9 @@ export default function PlacementCorner() {
                   <th>{PP?.shortlistedCompany[q?.rollno]?.length || 0}</th>
                   <th>{PP.stages[q.rollno]?.ot?.length || 0}</th>
                   <th>{PP.stages[q.rollno]?.gd?.length || 0}</th>
-                  <th>{PP.stages[q.rollno]?.inter?.length || 0}</th>
+                  <th>{PP.stages[q.rollno]?.inter1?.length || 0}</th>
+                  <th>{PP.stages[q.rollno]?.inter2?.length || 0}</th>
+                  <th>{PP.stages[q.rollno]?.inter3?.length || 0}</th>
                   <th>{PP.stages[q.rollno]?.hr?.length || 0}</th>
                   <th>{PP.stages[q.rollno]?.other?.length || 0}</th>
                   <th>{PP.placed[q.rollno]?.[0] ? "Placed" : "Not Placed"}</th>
@@ -173,10 +178,11 @@ export default function PlacementCorner() {
             </thead>
             <tbody>
               {company && user.rollno && company.map((q, i) => {
+                console.log(company);
                 return <tr className='text-center' key={i}>
                   <th>{i + 1}</th>
                   <th>{q.name}</th>
-                  <th>{q.jodRole}</th>
+                  <th>{q.jobRole}</th>
                   <th>{q.CTC}</th>
                   <th>{q.category}</th>
                   <th>{q.eligibleStudents.includes(user.rollno) ? "Yes" : "No"}</th>

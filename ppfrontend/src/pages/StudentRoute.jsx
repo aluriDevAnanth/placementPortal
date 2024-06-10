@@ -26,8 +26,11 @@ export default function MentorRoute() {
   const [completed, setCompleted] = useState(false);
 
   async function fetchStuCompFeed() {
+    console.log(111, 'studentRoute');
+    const baseURL = process.env.BASE_URL;
+    console.log(`${baseURL}/student/getStuCompFeed/${user.yearofpassing}`);
     try {
-      const response = await fetch(`http://localhost:3000/api/student/getStuCompFeed/${user.batch}`, {
+      const response = await fetch(`${baseURL}/student/getStuCompFeed/${user.yearofpassing}`, {
         method: "GET",
         headers: {
           "Content-Type": "application/json",
@@ -36,7 +39,7 @@ export default function MentorRoute() {
       });
       const res = await response.json();
       setSCF(res.data.feed);
-      //console.log(res.data.feed);
+      console.log('feed', res.data.feed);
       setCompleted(res.data.completed);
     } catch (error) {
       console.error("Error fetching student company feed:", error);

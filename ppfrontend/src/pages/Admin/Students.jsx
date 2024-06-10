@@ -21,6 +21,7 @@ export default function Students() {
   const toast = useRef(null);
   const [visibleColumns, setVisibleColumns] = useState([]);
   const dt = useRef(null);
+  const baseURL = process.env.BASE_URL
 
   const columns = [
     { field: 'personalemail', header: 'personalemail' },
@@ -49,7 +50,7 @@ export default function Students() {
     formData.append('file', file);
 
     try {
-      const response = await fetch('http://localhost:3000/api/admin/addStu', {
+      const response = await fetch(`${baseURL}/admin/addStu`, {
         method: 'POST',
         headers: {
           'Authorization': `Bearer ${auth}`,
@@ -82,7 +83,7 @@ export default function Students() {
     setStu(_products);
     toast.current.show({ severity: 'success', summary: 'Student Info updated', detail: newData.name, life: 3000 });
 
-    const response = await fetch('http://localhost:3000/api/admin/editStu', {
+    const response = await fetch(`${baseURL}/admin/editStu`, {
       method: 'POST',
       headers: {
         'Authorization': `Bearer ${auth}`,

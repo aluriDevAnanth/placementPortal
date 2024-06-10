@@ -7,13 +7,15 @@ export default function TestSchedule() {
   const { user, auth } = useContext(AuthCon);
   const { year, students } = useContext(MentorCon);
   const [schedule, setSchedule] = useState()
+  const baseURL = process.env.BASE_URL
+
   const mystyle = {
     backgroundColor: "#696747",
     color: "white",
   };
 
   async function fetchSchedule() {
-    const response = await fetch(`http://localhost:3000/api/mentor/getSchedule/${year.curr}`, {
+    const response = await fetch(`${baseURL}/mentor/getSchedule/${year.curr}`, {
       method: "GET",
       headers: {
         "Content-Type": "application/json",

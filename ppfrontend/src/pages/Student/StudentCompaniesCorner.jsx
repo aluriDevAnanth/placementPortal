@@ -5,9 +5,10 @@ import Sidebar from './components/Sidebar';
 export default function ParentCompaniesCorner() {
   const { user, auth } = useContext(AuthCon);
   const [com, setCom] = useState()
+  const baseURL = process.env.BASE_URL
 
   async function fetchCom() {
-    const response = await fetch(`http://localhost:3000/api/mentor/getCom/${user.batch}`, {
+    const response = await fetch(`${baseURL}/mentor/getCom/${user.batch}`, {
       method: "GET",
       headers: {
         "Content-Type": "application/json",

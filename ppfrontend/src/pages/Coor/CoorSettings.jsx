@@ -7,6 +7,7 @@ import Cookies from 'js-cookie';
 
 export default function AdminSettings() {
   const { user, auth, setAuth, setUser } = useContext(AuthCon);
+  const baseURL = process.env.BASE_URL
 
   // Define validation schema using Yup
   const validationSchema = Yup.object().shape({
@@ -16,7 +17,7 @@ export default function AdminSettings() {
 
   const chgnPwd = async (values) => {
     try {
-      const response = await fetch('http://localhost:3000/api/mentor/chgnPwd/', {
+      const response = await fetch(`${baseURL}/mentor/chgnPwd/`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",

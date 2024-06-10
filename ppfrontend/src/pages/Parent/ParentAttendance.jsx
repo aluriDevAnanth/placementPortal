@@ -8,6 +8,7 @@ export default function StudentAtt() {
   const [att, setAtt] = useState();
   const [totalAtt, setTotalAtt] = useState();
   const [show, setShow] = useState(false);
+  const baseURL = process.env.BASE_URL
 
   useEffect(() => {
     fetchAtt();
@@ -15,7 +16,7 @@ export default function StudentAtt() {
 
   const fetchAtt = async () => {
     try {
-      const response = await fetch(`http://localhost:3000/api/student/getAtt/${user.rollno}`, {
+      const response = await fetch(`${baseURL}/student/getAtt/${user.rollno}`, {
         method: "GET",
         headers: {
           "Content-Type": "application/json",

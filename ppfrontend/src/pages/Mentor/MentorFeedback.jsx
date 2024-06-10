@@ -15,21 +15,23 @@ export default function MentorFeedback() {
   const [PC, setPC] = useState();
   const [MR, setMR] = useState();
   const [activeTab, setActiveTab] = useState("individual");
+  const baseURL = process.env.BASE_URL
 
   async function fetchPC() {
-    const response = await fetch("http://localhost:3000/api/mentor/getPC", {
+    const response = await fetch(`${baseURL}/mentor/getCom/${year.curr}`, {
       method: "GET",
       headers: {
         "Content-Type": "application/json",
+        "Authorization": `Bearer ${auth}`,
       },
     });
 
-    const res = await response.json();
+    const res = await response.json(); console.log(res);
     setPC(res.data);
   }
 
   async function fetchMR() {
-    const response = await fetch(`http://localhost:3000/api/mentor/getMentorReview/${user.email}/${year.curr}`, {
+    const response = await fetch(`${baseURL}/mentor/getMentorReview/${user.email}/${year.curr}`, {
       method: "GET",
       headers: {
         "Content-Type": "application/json",
@@ -58,7 +60,7 @@ export default function MentorFeedback() {
       q[key] = value;
     }
 
-    const response = await fetch('http://localhost:3000/api/mentor/uploadMFB/', {
+    const response = await fetch(`${baseURL}/mentor/uploadMFB/`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
@@ -85,7 +87,7 @@ export default function MentorFeedback() {
     const checkedValues = checkedCheckboxes.map((checkbox) => checkbox.value);
     q.rollno = checkedValues.join(',')
     console.log(q);
-    const response = await fetch('http://localhost:3000/api/mentor/uploadMFB/', {
+    const response = await fetch(`${baseURL}/mentor/uploadMFB/`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
@@ -147,12 +149,7 @@ export default function MentorFeedback() {
                                   `${row.name} - Tentative`
                                 ) : (
                                   <>
-                                    {row.name} -{" "}
-                                    {new Date(row.dateofvisit).toLocaleDateString("en-US", {
-                                      day: "numeric",
-                                      month: "short",
-                                      year: "numeric",
-                                    })}
+                                    {`${row.name} / `}  {format(parseISO(row.dateOfVisit), 'dd-MM-yyyy')}
                                   </>
                                 )}
                               </option>

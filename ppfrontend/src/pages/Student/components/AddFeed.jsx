@@ -1,12 +1,10 @@
-import React, { useContext, useEffect, useState } from 'react';
-import Sidebar from './Sidebar';
+import React from 'react';
 import { Formik, Field, ErrorMessage } from 'formik';
-import { useForm, Controller } from 'react-hook-form';
-import AuthCon from '../../../context/AuthPro';
 import * as Yup from 'yup';
-import { FloatingLabel, Form as BootstrapForm, Table } from 'react-bootstrap';
+import { FloatingLabel, Form as BootstrapForm } from 'react-bootstrap';
 
 export default function AddFeed({ curr, comp }) {
+  const baseURL = process.env.BASE_URL
 
   const initialValues = {
     companyId: '',
@@ -22,7 +20,7 @@ export default function AddFeed({ curr, comp }) {
 
   async function addFeed(values, setSubmitting) {
     console.log(values);
-    const response = await fetch(`http://localhost:3000/api/student/postStuFeed`, {
+    const response = await fetch(`${baseURL}/student/postStuFeed`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
@@ -37,7 +35,7 @@ export default function AddFeed({ curr, comp }) {
 
   async function editFeed(values, setSubmitting) {
     console.log(values);
-    /* const response = await fetch(`http://localhost:3000/api/student/postStuFeed`, {
+    /* const response = await fetch(`${baseURL}/student/postStuFeed`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",

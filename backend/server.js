@@ -8,9 +8,10 @@ const StudentRou = require('./routes/user/StudentRou')
 const ParentRou = require('./routes/user/ParentRou')
 const mongoose = require('mongoose');
 var cors = require('cors')
+require("dotenv").config();
 
 const app = express();
-const PORT = 3000;
+const PORT = process.env.PORT;
 
 app.use(cors())
 app.use(express.json())
@@ -23,14 +24,13 @@ app.use('/api/admin', AdminRou);
 app.use('/api/student', StudentRou);
 app.use('/api/parent', ParentRou);
 
-app.get('/', (req, res) => {
+app.get('/api', (req, res) => {
     res.send('<p>qwerty</p>')
 })
 
 const start = async () => {
     try {
-        qq = await mongoose.connect('mongodb://localhost:27017/placementPortal');
-
+        qq = await mongoose.connect(`${process.env.MONGO_BASE_URL}/placementPortal`);
         app.listen(PORT, () => {
             console.log(`lala ${PORT}`)
         })

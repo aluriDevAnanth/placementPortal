@@ -4,6 +4,7 @@ import AuthCon from '../../context/AuthPro';
 export default function SetEvent({ setShowSetEvent, fetchEvents }) {
   const [eventInfo, setEventInfo] = useState(null);
   const { auth } = useContext(AuthCon);
+  const baseURL = process.env.BASE_URL
 
   const handleSubmit = async (event) => {
     event.preventDefault();
@@ -36,7 +37,7 @@ export default function SetEvent({ setShowSetEvent, fetchEvents }) {
         eventData = { name, des, startTime, endTime, rec, students };
         setEventInfo(eventData);
 
-        const response = await fetch('http://localhost:3000/api/admin/postEvent', {
+        const response = await fetch(`${baseURL}/admin/postEvent`, {
           method: "POST",
           headers: {
             "Content-Type": "application/json",
@@ -57,7 +58,7 @@ export default function SetEvent({ setShowSetEvent, fetchEvents }) {
       eventData = { name, des, startTime, endTime, rec };
       setEventInfo(eventData);
 
-      const response = await fetch('http://localhost:3000/api/admin/postEvent', {
+      const response = await fetch(`${baseURL}/admin/postEvent`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",

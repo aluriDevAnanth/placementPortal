@@ -6,9 +6,10 @@ import AuthCon from '../../context/AuthPro';
 export default function MentorDetails() {
   const [men, setMen] = useState()
   const { auth } = useContext(AuthCon)
+  const baseURL = process.env.BASE_URL
 
   async function fetchMentorDetails() {
-    const response = await fetch(`http://localhost:3000/api/parent/getMentorDetails`, {
+    const response = await fetch(`${baseURL}/parent/getMentorDetails`, {
       method: "GET",
       headers: {
         "Content-Type": "application/json",

@@ -9,9 +9,10 @@ export default function ParentTestResult() {
     backgroundColor: "#696747",
     color: "white",
   };
+  const baseURL = process.env.BASE_URL
 
   async function fetchSchedule() {
-    const response = await fetch(`http://localhost:3000/api/mentor/getSchedule/${user.batch}`, {
+    const response = await fetch(`${baseURL}/mentor/getSchedule/${user.batch}`, {
       method: "GET",
       headers: {
         "Content-Type": "application/json",

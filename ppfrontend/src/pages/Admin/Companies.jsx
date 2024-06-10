@@ -13,6 +13,7 @@ import { Tooltip } from 'primereact/tooltip';
 import { isAfter, parseISO, format, addDays } from 'date-fns'
 import { Accordion, Button, Form, Table, Tab, Nav, FloatingLabel } from 'react-bootstrap';
 import ListGroup from 'react-bootstrap/ListGroup';
+const baseURL = process.env.BASE_URL
 
 const ShortStu = ({ q, stus, students, ss }) => {
   const stu = q[ss] ? q[ss].map(rollno => students[rollno]) : [];
@@ -21,7 +22,7 @@ const ShortStu = ({ q, stus, students, ss }) => {
 
   return (
     <div>
-      <DataTable size={'small'} value={stu} className="p-datatable-striped p-datatable-hover" showGridlines stripedRows paginator rows={10} rowsPerPageOptions={[25, 50]} sortField="name" sortOrder={1} removableSort sortMode="multiple" filterDisplay="row" emptyMessage="No Company found." resizableColumns  >
+      <DataTable size={'small'} value={stu} className="p-datatable-striped p-datatable-hover" showGridlines stripedRows paginator rows={10} rowsPerPageOptions={[25, 50]} sortField="name" sortOrder={1} removableSort filterDisplay="row" emptyMessage="No Company found." resizableColumns  >
         <Column field="name" header="Name" filter sortable showFilterMenu={false} filterMatchMode="contains" />
         <Column field="rollno" header="rollno" filter sortable showFilterMenu={false} filterMatchMode="contains" />
         <Column field="email" header="email" filter sortable showFilterMenu={false} filterMatchMode="contains" />
@@ -180,7 +181,7 @@ export default function Companies() {
     formData.append('file', file);
 
     try {
-      const response = await fetch('http://localhost:3000/api/admin/addCompBulk', {
+      const response = await fetch(`${baseURL}/admin/addCompBulk`, {
         method: 'POST',
         headers: {
           'Authorization': `Bearer ${auth}`,
@@ -214,7 +215,7 @@ export default function Companies() {
     setStu(_products);
     toast.current.show({ severity: 'success', summary: 'Student Info updated', detail: newData.name, life: 3000 });
 
-    const response = await fetch('http://localhost:3000/api/admin/editStu', {
+    const response = await fetch(`${baseURL}/admin/editStu`, {
       method: 'POST',
       headers: {
         'Authorization': `Bearer ${auth}`,

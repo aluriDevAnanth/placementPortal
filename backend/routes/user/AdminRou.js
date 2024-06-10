@@ -237,7 +237,7 @@ router.post('/postEvent', async (req, res) => {
 
     if (role === "admin") {
       //console.log(req.body.data);
-      let q = await Event.create(req.body.data)
+      let q = await Event.create({ ...req.body.data, attendance: {} })
 
       res.json({
         success: true,
@@ -409,7 +409,7 @@ router.post('/editStu', async (req, res) => {
       if (role === "admin") {
         const stu = req.body.stu;
         let s = await Student2.findOneAndUpdate({ _id: stu._id }, { ...stu }, { new: true })
-        console.log(1, stu._id, s);
+        //console.log(1, stu._id, s);
         res.json({ success: true, data: { stu: s } })
       } else {
         res.json({ success: false, error: 'wrong role' });
@@ -463,9 +463,9 @@ router.get('/getStu/:year', async (req, res) => {
 
 router.get('/getYears', async (req, res) => {
   try {
-    console.log(11);
+    //console.log(11);
     const distinctYears = await Student.distinct('yearofpassing');
-    console.log(distinctYears);
+    //console.log(distinctYears);
     res.json({ success: true, data: { years: distinctYears } });
   } catch (error) {
     res.status(500).json({ error: 'An error occurred' });
@@ -474,7 +474,7 @@ router.get('/getYears', async (req, res) => {
 
 router.post('/postMentorThroughEmail', async (req, res) => {
   let q = req.body.emails
-  console.log(q);
+  //console.log(q);
   for (let i of q) {
     let mentorExists = await Mentor.findOne({ where: { email: i } });
 
@@ -582,7 +582,7 @@ router.post("/markAtt", async (req, res) => {
 
 router.post("/submitStdAtt", async (req, res) => {
   const { roll_numbers, sessionid } = req.body;
-  console.log(roll_numbers, sessionid);
+  //console.log(roll_numbers, sessionid);
 
   if (!roll_numbers || !sessionid) {
     return res.status(400).json({
@@ -715,14 +715,14 @@ router.post('/addCompBulk', upload.single('file'), async (req, res) => {
         }
       })
       q.stages = stages
-      console.log(q.name, stages);
+      //console.log(q.name, stages);
       //console.log(q.name, 'stages', stages); 
 
       if (await PlacementCorner.findOne({ name: q.name })) {
         let updatedDocument = await PlacementCorner.findOneAndUpdate({ name: q.name }, { ...q }, { new: true });
         comp.push(updatedDocument);
       } else {
-        let newDocument = await PlacementCorner.create({ ...q, stages });
+        let newDocument = await PlacementCorner.create({ ...q, stages, stuFeed: {} });
         comp.push(newDocument);
       }
     })
@@ -733,7 +733,7 @@ router.post('/addCompBulk', upload.single('file'), async (req, res) => {
       if (err) {
         console.error('Error deleting the file:', err);
       } else {
-        console.log('Uploaded file deleted successfully');
+        //console.log('Uploaded file deleted successfully');
       }
     });
   } catch (error) {
@@ -766,7 +766,30 @@ router.post('/addAttBulk', upload.single('file'), async (req, res) => {
 
     const jsonData = await xlsxToJson(file.path);
 
-    jsonData.rollno = jsonData.rollno.split('\n')
+    jsonData.map(async eve => {
+      try {
+        eve.date = format(new Date(eve.date), 'dd-MM-yyyy');
+        eve.rollno = eve.rollno.split('\n').map(rollno => rollno.trim());
+        let curr = await Event.findOne({ name: eve.name });
+
+        if (curr) {
+          if (!curr.attendance) {
+            curr.attendance = {};
+          }
+          if (curr.attendance[eve.date]) {
+            curr.attendance[eve.date] = Array.from(new Set(curr.attendance[eve.date].concat(eve.rollno)));
+          } else {
+            curr.attendance[eve.date] = eve.rollno;
+          }
+          await Event.findOneAndUpdate({ name: eve.name }, { attendance: curr.attendance }, { new: true });
+          //console.log(`Attendance updated for event: ${eve.name}`);
+        } else {
+          console.log(`Event not found: ${eve.name}`);
+        }
+      } catch (error) {
+        console.error(`Error updating attendance for event: ${eve.name}`, error);
+      }
+    });
 
     res.json({ success: true, data: { jsonData } });
 
@@ -774,7 +797,7 @@ router.post('/addAttBulk', upload.single('file'), async (req, res) => {
       if (err) {
         console.error('Error deleting the file:', err);
       } else {
-        console.log('Uploaded file deleted successfully');
+        //console.log('Uploaded file deleted successfully');
       }
     });
   } catch (error) {

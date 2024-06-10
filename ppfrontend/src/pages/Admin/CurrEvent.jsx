@@ -11,6 +11,7 @@ export default function CurrEvent() {
   const [qrValue, setQRValue] = useState();
   const [sess, setSess] = useState(false);
   const [currentTokenIndex, setCurrentTokenIndex] = useState(0);
+  const baseURL = process.env.BASE_URL
 
   useEffect(() => {
     fetchEvent();
@@ -18,7 +19,7 @@ export default function CurrEvent() {
 
   async function fetchTokens(sessionId) {
     try {
-      const response = await fetch('http://localhost:3000/api/admin/startQrSession', {
+      const response = await fetch(`${baseURL}/admin/startQrSession`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -39,7 +40,7 @@ export default function CurrEvent() {
 
   async function fetchEvent() {
     try {
-      const response = await fetch(`http://localhost:3000/api/admin/getEvent/${eid}`, {
+      const response = await fetch(`${baseURL}/admin/getEvent/${eid}`, {
         method: "GET",
         headers: {
           "Content-Type": "application/json",

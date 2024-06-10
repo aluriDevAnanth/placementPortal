@@ -18,9 +18,10 @@ export default function Students() {
   const [file, setFile] = useState(null);
   const [jsonData, setJsonData] = useState();
   const { stu, year, setStu } = useContext(AdminCon)
-  const toast = useRef(null);
   const [visibleColumns, setVisibleColumns] = useState([]);
   const dt = useRef(null);
+  const toast = useRef(null);
+  const baseURL = process.env.BASE_URL
 
   const columns = [
     { field: 'personalemail', header: 'personalemail' },
@@ -49,7 +50,7 @@ export default function Students() {
     formData.append('file', file);
 
     try {
-      const response = await fetch('http://localhost:3000/api/admin/addAttBulk', {
+      const response = await fetch(`${baseURL}/admin/addAttBulk`, {
         method: 'POST',
         headers: {
           'Authorization': `Bearer ${auth}`,
@@ -63,6 +64,9 @@ export default function Students() {
 
       const res = await response.json();
       setJsonData(res.data.jsonData);
+      jsonData.map(q => {
+        toast.current.show({ severity: 'info', summary: 'Attendence added', detail: `${q.rollno.length} students attendence added to ${q.name} for date ${q.date}`, life: 3000 });
+      })
     } catch (error) {
       console.error('Error uploading file:', error);
     }
@@ -82,7 +86,7 @@ export default function Students() {
     setStu(_products);
     toast.current.show({ severity: 'success', summary: 'Student Info updated', detail: newData.name, life: 3000 });
 
-    const response = await fetch('http://localhost:3000/api/admin/editStu', {
+    const response = await fetch(`${baseURL}/admin/editStu`, {
       method: 'POST',
       headers: {
         'Authorization': `Bearer ${auth}`,
@@ -146,10 +150,11 @@ export default function Students() {
           <Sidebar />
         </div>
         <div className='ms-3 me-3 container w-100'>
-          <h1>Student Management Portal</h1>
+          <h1>Attendence Management Portal</h1>
           <form onSubmit={handleSubmit}>
             <div className="mb-3 d-flex column-gap-3 align-items-center">
               <label htmlFor="formFile" className="form-label">Upload file here to add students</label>
+              {jsonData && console.log(jsonData)}
               <div className='flex-fill'>
                 <input className="form-control" type="file" id="formFile" onChange={handleFileChange} accept=".xlsx, .xls" />
               </div>
@@ -157,37 +162,13 @@ export default function Students() {
             </div>
           </form>
           <div>
-            <pre>{jsonData && JSON.stringify(jsonData, null, 2)} {console.log(jsonData)}</pre>
+            <Toast ref={toast} />
           </div>
         </div>
       </div>
       {stu && <div className='mt-3 container-fluid'>
-        <p className='fs-3 fw-bold'>Batchs</p>
         <Toast ref={toast} />
         <Tooltip target=".export-buttons>button" position="bottom" />
-        <Accordion alwaysOpen defaultActiveKey={year.curr}>
-          <Accordion.Item eventKey={year.curr}>
-            <Accordion.Header> {year.curr} batch - {Object.values(stu).length} students </Accordion.Header>
-            <Accordion.Body >
-              <DataTable ref={dt} reorderableColumns resizableColumns size='small' value={Object.values(stu)} showGridlines stripedRows paginator rows={20} rowsPerPageOptions={[30, 50, 100, 200]} tableStyle={{ minWidth: '50rem' }} filterDisplay="row" emptyMessage="No Students found." removableSort sortField="name" sortOrder={1} editMode="row" onRowEditComplete={onRowEditComplete} header={header}>
-                <Column field='name' header='Name' sortable filter filterMatchMode="contains" className='text-center' showFilterMenu={false} editor={(options) => textEditor(options)} />
-                <Column field='rollno' header='Rollno' sortable filter filterMatchMode="contains" className='text-center' showFilterMenu={false} editor={(options) => textEditor(options)} />
-                <Column field='phone' header='phone' sortable filter filterMatchMode="contains" className='text-center' showFilterMenu={false} editor={(options) => textEditor(options)} />
-                <Column field='email' header='email' sortable filter filterMatchMode="contains" className='text-center' showFilterMenu={false} editor={(options) => textEditor(options)} />
-                <Column field='CGPA' header='CGPA' sortable filter filterMatchMode="contains" className='text-center' showFilterMenu={false} editor={(options) => textEditor(options)} />
-                <Column field='mentoremail' header='Mentor Email' sortable filter filterMatchMode="contains" className='text-center' showFilterMenu={false} editor={(options) => textEditor(options)} />
-                <Column field='school' header='School' sortable filter filterMatchMode="contains" className='text-center' showFilterMenu={false} editor={(options) => textEditor(options)} />
-                <Column field='dept' header='Dept' sortable filter filterMatchMode="contains" className='text-center' showFilterMenu={false} editor={(options) => textEditor(options)} />
-                {/* OPTIONAL COL */}
-                {visibleColumns.map((col) => (
-                  <Column key={col.field} field={col.field} header={col.header} sortable filter filterMatchMode="contains" className='text-center' showFilterMenu={false} editor={(options) => textEditor(options)} />
-                ))}
-                {/* OPTIONAL COL */}
-                <Column rowEditor={allowEdit} bodyStyle={{ textAlign: 'center' }}></Column>
-              </DataTable>
-            </Accordion.Body>
-          </Accordion.Item>
-        </Accordion>
       </div>}
     </div>
   );

@@ -9,6 +9,7 @@ export default function CurrEvent() {
   const { auth } = useContext(AuthCon);
   const [event, setEvent] = useState();
   const [qrValue, setQRValue] = useState();
+  const baseURL = process.env.BASE_URL
 
   useEffect(() => {
     fetchEvent();
@@ -26,7 +27,7 @@ export default function CurrEvent() {
 
   async function fetchEvent() {
     try {
-      const response = await fetch(`http://localhost:3000/api/admin/getEvent/${eid}`, {
+      const response = await fetch(`${baseURL}/admin/getEvent/${eid}`, {
         method: "GET",
         headers: {
           "Content-Type": "application/json",
@@ -42,7 +43,7 @@ export default function CurrEvent() {
 
   async function fetchRandomValue() {
 
-    const response = await fetch('http://localhost:3000/api/admin/getRandomValue', {
+    const response = await fetch(`${baseURL}/admin/getRandomValue`, {
       method: "GET",
       headers: {
         "Content-Type": "application/json",

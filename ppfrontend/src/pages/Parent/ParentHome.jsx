@@ -6,6 +6,7 @@ import AuthCon from '../../context/AuthPro';
 export default function StudentHome() {
   const { auth, user } = useContext(AuthCon);
   const [com, setCom] = useState([]);
+  const baseURL = process.env.BASE_URL
 
   useEffect(() => {
     if (user.batch) fetchCom();
@@ -13,7 +14,7 @@ export default function StudentHome() {
 
   async function fetchCom() {
     try {
-      const response = await fetch(`http://localhost:3000/api/student/getCom/${user.batch}`, {
+      const response = await fetch(`${baseURL}/student/getCom/${user.batch}`, {
         method: "GET",
         headers: {
           "Content-Type": "application/json",

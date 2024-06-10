@@ -38,7 +38,7 @@ const PlacementCornerSchema = new mongoose.Schema({
   },
   stuFeed: {},
 }, {
-  timestamps: true
+  timestamps: true, minimize: false
 });
 
 const PlacementCorner = mongoose.model('placementcorners', PlacementCornerSchema);

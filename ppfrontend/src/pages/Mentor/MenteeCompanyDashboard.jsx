@@ -17,9 +17,10 @@ export default function MenteeCompanyDashboard() {
   const [disPP, setDisPP] = useState();
   const [expandedRows, setExpandedRows] = useState();
   const toast = useRef(null);
+  const baseURL = process.env.BASE_URL
 
   async function fetchCompanies() {
-    const response = await fetch(`http://localhost:3000/api/mentor/getComp/${year.curr}`, {
+    const response = await fetch(`${baseURL}/mentor/getComp/${year.curr}`, {
       method: "GET",
       headers: {
         "Content-Type": "application/json",
@@ -32,7 +33,7 @@ export default function MenteeCompanyDashboard() {
 
   async function fetchStudentPlacementProgress() {
     const rollno = Object.keys(students);
-    const response = await fetch(`http://localhost:3000/api/mentor/getStudentPlacementProgress/${year.curr}`, {
+    const response = await fetch(`${baseURL}/mentor/getStudentPlacementProgress/${year.curr}`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",

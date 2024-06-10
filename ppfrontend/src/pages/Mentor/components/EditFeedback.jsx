@@ -4,6 +4,7 @@ import { Button, Form, Modal, FloatingLabel } from 'react-bootstrap';
 
 export default function EditFeedback({ edit, setEdit, MR, setMR }) {
   const { auth, user } = useContext(AuthCon);
+  const baseURL = process.env.BASE_URL
 
   const upIndiFB = async (e) => {
     e.preventDefault();
@@ -16,7 +17,7 @@ export default function EditFeedback({ edit, setEdit, MR, setMR }) {
     }
     console.log('edited feed', q);
     try {
-      const response = await fetch('http://localhost:3000/api/mentor/updateMFB/', {
+      const response = await fetch(`${baseURL}/mentor/updateMFB/`, {
         method: "PUT",
         headers: {
           "Content-Type": "application/json",

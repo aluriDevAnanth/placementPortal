@@ -11,6 +11,7 @@ export default function MentorHome() {
   const { students, year } = useContext(MentorCon)
   const { user, auth } = useContext(AuthCon)
   const [com, setCom] = useState([]);
+  const baseURL = process.env.BASE_URL
 
   useEffect(() => {
     if (year.curr) fetchCom();
@@ -18,7 +19,7 @@ export default function MentorHome() {
 
   async function fetchCom() {
     try {
-      const response = await fetch(`http://localhost:3000/api/student/getCom/${year.curr}`, {
+      const response = await fetch(`${baseURL}/student/getCom/${year.curr}`, {
         method: "GET",
         headers: {
           "Content-Type": "application/json",

@@ -11,9 +11,10 @@ export function AdminPro({ children }) {
   const [stu, setStu] = useState([])
   const [feed, setFeed] = useState()
   const { auth } = useContext(AuthCon)
+  const baseURL = process.env.BASE_URL
 
   async function fetchMentors() {
-    const response = await fetch(`http://localhost:3000/api/dean/getAllMentors`, {
+    const response = await fetch(`${baseURL}/dean/getAllMentors`, {
       method: "GET",
       headers: {
         "Content-Type": "application/json",
@@ -25,7 +26,7 @@ export function AdminPro({ children }) {
   }
 
   async function fetchFeed() {
-    const response = await fetch(`http://localhost:3000/api/dean/getAllFeed`, {
+    const response = await fetch(`${baseURL}/dean/getAllFeed`, {
       method: "GET",
       headers: {
         "Content-Type": "application/json",
@@ -38,7 +39,7 @@ export function AdminPro({ children }) {
 
   async function fetchStudents() {
     try {
-      const response = await fetch(`http://localhost:3000/api/admin/getStu/${year.curr}`, {
+      const response = await fetch(`${baseURL}/admin/getStu/${year.curr}`, {
         method: 'GET',
         headers: {
           'Authorization': `Bearer ${auth}`,
@@ -58,7 +59,7 @@ export function AdminPro({ children }) {
   }
 
   async function fetchComp() {
-    const response = await fetch(`http://localhost:3000/api/mentor/getCom/${year.curr}`, {
+    const response = await fetch(`${baseURL}/mentor/getCom/${year.curr}`, {
       method: "GET",
       headers: {
         "Content-Type": "application/json",
@@ -72,7 +73,7 @@ export function AdminPro({ children }) {
 
   const fetchYears = async () => {
     try {
-      const response = await fetch(`http://localhost:3000/api/admin/getYears`, {
+      const response = await fetch(`${baseURL}/admin/getYears`, {
         method: "GET",
         headers: {
           "Content-Type": "application/json",

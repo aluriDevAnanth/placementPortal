@@ -88,7 +88,7 @@ router.post('/getEventAtt', async (req, res) => {
                 q[qq] = att;
             }));
 
-            console.log(q, rollno);
+            //console.log(q, rollno);
             res.json({ success: true, data: { att: q } });
 
         } else {
@@ -180,7 +180,7 @@ router.post('/uploadMFB', async (req, res) => {
 
 router.put('/updateMFB', async (req, res) => {
     const { id, user, data } = req.body;
-    console.log(data);
+    //console.log(data);
     if (data.reviewtype === 'individual') {
         try {
             const MFB = {
@@ -235,26 +235,31 @@ router.put('/updateMFB', async (req, res) => {
 });
 
 router.get('/getCom/:year', async (req, res) => {
-    let token;
-    const authHeader = req.headers["authorization"];
-    if (authHeader !== undefined) {
-        token = authHeader.split(" ")[1];
-    }
-
-    if (token) {
-        const { username, role } = jwt.verify(token, 'qwertyuiop');
-        if (role === "mentor" || role === "parent" || role === "student" || role === "admin") {
-            //console.log(req.params.year)
-            //console.log(role);
-            const com = await PlacementCorner.find({ batch: req.params.year })
-            res.json({ success: true, data: com });
+    try {
+        let token;
+        const authHeader = req.headers["authorization"];
+        if (authHeader !== undefined) {
+            token = authHeader.split(" ")[1];
         }
-    } else {
+
+        if (token) {
+            const { username, role } = jwt.verify(token, 'qwertyuiop');
+            if (role === "mentor" || role === "parent" || role === "student" || role === "admin") {
+                //console.log('year', req.params.year, role)
+                //console.log(role);
+                const com = await PlacementCorner.find({ batch: req.params.year })
+                res.json({ success: true, data: com });
+            }
+        } else {
+            res.json({ success: false, error: 'error' });
+        }
+    } catch (error) {
         res.json({
             success: false,
             error: 'error'
         });
     }
+
 })
 
 router.post('/upDet', async (req, res) => {
@@ -399,7 +404,7 @@ router.get('/getAllStu/:year', async (req, res) => {
 router.post('/getStudentPlacementProgress/:year', async (req, res) => {
     try {
         const { rollno } = req.body; const { year } = req.params;
-
+        //console.log(rollno, year);
         let eligibleCompany = {}; let appliedCompany = {}; let shortlistedCompany = {};
         await Promise.all(rollno.map(async (no) => {
             let qqq = await PlacementCorner.find({ eligibleStudents: no, batch: year }, { name: 1, _id: 0 });
@@ -422,23 +427,55 @@ router.post('/getStudentPlacementProgress/:year', async (req, res) => {
         let stages = {}; let placed = {};
 
         await Promise.all(rollno.map(async (no) => {
-            let [ot, gd, inter, hr, other, p] = await Promise.all([
-                PlacementCorner.find({ "stages.onlineTest": no, batch: year }, { name: 1, _id: 0 }),
-                PlacementCorner.find({ "stages.GD": no, batch: year }, { name: 1, _id: 0 }),
-                PlacementCorner.find({ "stages.interview": no, batch: year }, { name: 1, _id: 0 }),
-                PlacementCorner.find({ "stages.HR": no, batch: year }, { name: 1, _id: 0 }),
-                PlacementCorner.find({ "stages.otherStages": no, batch: year }, { name: 1, _id: 0 }),
+            let [ot, gd, inter1, inter2, inter3, hr, other, p] = await Promise.all([
+                PlacementCorner.aggregate([
+                    { $match: { batch: year } },
+                    { $project: { name: 1, stages: 1, _id: 0 } },
+                    { $match: { [`stages.onlineTest.${no}`]: "cleared" } }
+                ]),
+                PlacementCorner.aggregate([
+                    { $match: { batch: year } },
+                    { $project: { name: 1, stages: 1, _id: 0 } },
+                    { $match: { [`stages.GD.${no}`]: "cleared" } }
+                ]),
+                PlacementCorner.aggregate([
+                    { $match: { batch: year } },
+                    { $project: { name: 1, stages: 1, _id: 0 } },
+                    { $match: { [`stages.interview1.${no}`]: "cleared" } }
+                ]),
+                PlacementCorner.aggregate([
+                    { $match: { batch: year } },
+                    { $project: { name: 1, stages: 1, _id: 0 } },
+                    { $match: { [`stages.interview2.${no}`]: "cleared" } }
+                ]),
+                PlacementCorner.aggregate([
+                    { $match: { batch: year } },
+                    { $project: { name: 1, stages: 1, _id: 0 } },
+                    { $match: { [`stages.interview3.${no}`]: "cleared" } }
+                ]),
+                PlacementCorner.aggregate([
+                    { $match: { batch: year } },
+                    { $project: { name: 1, stages: 1, _id: 0 } },
+                    { $match: { [`stages.HR.${no}`]: "cleared" } }
+                ]),
+                PlacementCorner.aggregate([
+                    { $match: { batch: year } },
+                    { $project: { name: 1, stages: 1, _id: 0 } },
+                    { $match: { [`stages.otherStages.${no}`]: "cleared" } }
+                ]),
                 PlacementCorner.find({ "placedStudents": no, batch: year }, { name: 1, CTC: 1, _id: 0 })
             ]);
 
             ot = ot.map(item => item.name);
-            inter = inter.map(item => item.name);
+            inter1 = inter1.map(item => item.name);
+            inter2 = inter2.map(item => item.name);
+            inter3 = inter3.map(item => item.name);
             gd = gd.map(item => item.name);
             hr = hr.map(item => item.name);
             other = other.map(item => item.name);
 
             placed[no] = p;
-            stages[no] = { ot, gd, inter, hr, other };
+            stages[no] = { ot, gd, inter1, inter2, inter3, hr, other };
             //console.log(ot, gd, inter, hr, other);
         }));
 

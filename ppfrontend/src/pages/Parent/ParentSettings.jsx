@@ -10,6 +10,7 @@ export default function ParentSettings() {
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
   const [errors, setErrors] = useState({});
+  const baseURL = process.env.BASE_URL
 
   function validateForm() {
     const errors = {};
@@ -34,7 +35,7 @@ export default function ParentSettings() {
       const confirmPassword = formData.get('cpass');
       const data = { pass: password, cpass: confirmPassword }
       //console.log(data);
-      const response = await fetch(`http://localhost:3000/api/parent/changePassword`, {
+      const response = await fetch(`${baseURL}/parent/changePassword`, {
         method: "PUT",
         headers: {
           "Content-Type": "application/json",

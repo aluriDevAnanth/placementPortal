@@ -11,6 +11,7 @@ import * as Yup from 'yup';
 import { Formik, Form, Field, ErrorMessage } from 'formik';
 import { DataTable } from 'primereact/datatable';
 import { Column } from 'primereact/column';
+const baseURL = process.env.BASE_URL
 
 function EventTable({ events, setCurr, handleShow, deleteEvent }) {
   const formatDate = (date) => format(parseISO(date), "dd-MM-yyyy hh:mm a");
@@ -73,7 +74,7 @@ export default function Events() {
   });
 
   async function fetchEvents() {
-    const response = await fetch('http://localhost:3000/api/admin/getEvents', {
+    const response = await fetch(`${baseURL}/admin/getEvents`, {
       method: "GET",
       headers: {
         "Content-Type": "application/json",
@@ -90,7 +91,7 @@ export default function Events() {
 
   async function deleteEvent(name, id) {
     if (confirm(`Do you want to delete the event ${name}`) == true) {
-      await fetch(`http://localhost:3000/api/admin/deleteEvent/${id}`, {
+      await fetch(`${baseURL}/admin/deleteEvent/${id}`, {
         method: "DELETE",
         headers: {
           "Content-Type": "application/json",
@@ -125,7 +126,7 @@ export default function Events() {
 
         eventData = { ...eventData, students };
 
-        const response = await fetch('http://localhost:3000/api/admin/putEvent', {
+        const response = await fetch(`${baseURL}/admin/putEvent`, {
           method: 'PUT',
           headers: {
             'Content-Type': 'application/json',
@@ -142,7 +143,7 @@ export default function Events() {
 
       reader.readAsText(file);
     } else {
-      const response = await fetch('http://localhost:3000/api/admin/putEvent', {
+      const response = await fetch(`${baseURL}/admin/putEvent`, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
