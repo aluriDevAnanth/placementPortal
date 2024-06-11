@@ -1,20 +1,5 @@
 const mongoose = require('mongoose');
 
-const studentSchema = new mongoose.Schema({
-  name: String,
-  rollno: String,
-  phone: String,
-  parentphone: String,
-  email: String,
-  mentor: String,
-  mentoremail: String,
-  branch: String,
-  course: String,
-  batch: String,
-}, {
-  timestamps: true
-});
-
 const studentSchema2 = new mongoose.Schema({
   "10": String,
   "12": String,
@@ -42,7 +27,7 @@ const studentSchema2 = new mongoose.Schema({
   yearofpassing: String,
   school: String,
   enrollmentstatus: String,
-}, { timestamps: true });
+}, { timestamps: true, minimize: false });
 
 const Student = mongoose.model('studentlist2', studentSchema2);
 

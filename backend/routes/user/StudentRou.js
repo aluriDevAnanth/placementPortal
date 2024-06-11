@@ -22,6 +22,7 @@ const PlacementCompany = require('../../models/user/PlacementCompany')
 const PlacementCorner = require('../../models/user/PlacementCorner')
 const MentorReview = require('../../models/mentor/MentorReview')
 const StudentFeedback = require('../../models/user/StudentFeedback')
+const Ann = require('../../models/admin/Ann');
 
 //use
 router.use(express.json());
@@ -435,6 +436,39 @@ router.get('/getPracDet', async (req, res) => {
   }
 })
 
-
+router.get('/getAnn/:year', async (req, res) => {
+  try {
+    let token;
+    const authHeader = req.headers["authorization"];
+    if (authHeader !== undefined) token = authHeader.split(" ")[1];
+    if (token) {
+      const { username, role } = jwt.verify(token, 'qwertyuiop');
+      if (role === "student") {
+        const q = await Ann.findOne({ batch: req.params.year }).sort({ createdAt: -1 });
+        return res.json({ success: true, data: { ann: q } });
+      } else {
+        return res.json({ success: false, error: 'wrong role' });
+      }
+    } else {
+      return res.json({ success: false, error: 'wrong token' });
+    }
+  } catch (error) {
+    return res.json({ success: false, error: 'internal server error' });
+  }
+  let token;
+  const authHeader = req.headers["authorization"];
+  if (authHeader !== undefined) token = authHeader.split(" ")[1];
+  if (token) {
+    const { username, role } = jwt.verify(token, 'qwertyuiop');
+    if (role === "student") {
+      const q = await Ann.findOne({ batch: req.params.year }).sort({ createdAt: -1 });
+      return res.json({ success: true, data: { ann: q } });
+    } else {
+      return res.json({ success: false, error: 'wrong role' });
+    }
+  } else {
+    return res.json({ success: false, error: 'wrong token' });
+  }
+})
 
 module.exports = router;

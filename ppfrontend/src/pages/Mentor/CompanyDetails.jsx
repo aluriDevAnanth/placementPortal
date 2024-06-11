@@ -161,7 +161,7 @@ export default function CompanyDetails() {
                 <Column expander={allowExpansion} style={{ width: '1rem' }} />
                 <Column field="name" header="Name" filter sortable showFilterMenu={false} filterMatchMode="contains" />
                 <Column field="dateOfVisit" header="Date Of Visit" filter sortable showFilterMenu={false} filterMatchMode="contains" body={(data, props) => { return <p> {format(parseISO(data.dateOfVisit), 'yyyy-MM-dd')}</p> }} />
-                <Column field="modeOfDrive" header="Mode Of Drive" filter sortable showFilterMenu={false} filterMatchMode="contains" />
+                <Column field="branches" header="Eligible branches" filter sortable showFilterMenu={false} filterMatchMode="contains" body={(data, props) => { return <p> {data.branches.join(', ')}</p> }} />
                 <Column field="jobRole" header="Job Role" filter sortable showFilterMenu={false} filterMatchMode="contains" />
                 <Column field="CTC" header="CTC" filter sortable showFilterMenu={false} filterMatchMode="contains" />
                 <Column field="eligible" header="Eligible" filter sortable showFilterMenu={false} filterMatchMode="contains"

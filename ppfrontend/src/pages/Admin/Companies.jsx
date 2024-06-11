@@ -111,8 +111,26 @@ function CompanyDetails({ comp, students, year }) {
                 <Column field="shortlisted" header="Short Listed" filter sortable showFilterMenu={false} filterMatchMode="contains"
                   body={(data, props) => { return <p> {data.shortlistedStudents.length}</p> }} />
                 {["onlineTest", "GD", "interview1", "HR", "otherStages"].map((col, i) => (
-                  <Column key={col} field={col} header={col} body={(data, props) => { return <p> {!(data.stages[col] === 'not applicable') ? Object.values(data.stages[col]).filter(data => data === 'cleared').length : data.stages[col]}</p> }} />
+                  <Column
+                    key={col}
+                    field={col}
+                    header={col}
+                    body={(data, props) => {
+                      if (!data.stages || !data.stages[col]) {
+                        return <p>not applicable</p>;
+                      }
+
+                      return (
+                        <p>
+                          {data.stages[col] !== 'not applicable'
+                            ? Object.values(data.stages[col]).filter(status => status === 'cleared').length
+                            : data.stages[col]}
+                        </p>
+                      );
+                    }}
+                  />
                 ))}
+
                 <Column field="placedStudents" header="Final selected" filter sortable showFilterMenu={false} filterMatchMode="contains"
                   body={(data, props) => { return <p> {data.placedStudents ? data.placedStudents.length : '-'}</p> }} />
               </DataTable>

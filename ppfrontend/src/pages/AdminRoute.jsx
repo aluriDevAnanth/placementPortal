@@ -8,8 +8,10 @@ import Header from './Admin/components/Header'
 import Events from './Admin/Events'
 import Students from './Admin/Students'
 import Attendence from './Admin/Attendence'
+import Test from './Admin/Test'
 import Companies from './Admin/Companies'
 import CurrEvent from './Admin/CurrEvent'
+import Announcements from './Admin/Announcements'
 import AdminSettings from './Admin/AdminSettings'
 /* Admin */
 
@@ -28,6 +30,8 @@ export default function MentorRoute() {
           <Route path='/students' element={<Students />} />
           <Route path='/companies' element={<Companies />} />
           <Route path='/attendence' element={<Attendence />} />
+          <Route path='/tests' element={<Test />} />
+          <Route path='/announcements' element={<Announcements />} />
           <Route path='/settings' element={<AdminSettings />} />
         </Routes>
       }

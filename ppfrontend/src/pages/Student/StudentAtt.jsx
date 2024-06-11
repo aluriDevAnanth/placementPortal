@@ -10,11 +10,27 @@ export default function StudentAtt() {
   const { auth, user } = useContext(AuthCon);
   const [att, setAtt] = useState([]);
   const [totalAtt, setTotalAtt] = useState(0);
+  const [totalEventAtt, setTotalEventAtt] = useState(0);
   const [eventAtt, setEventAtt] = useState([]);
   const [show, setShow] = useState(false);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const baseURL = process.env.BASE_URL
+
+  useEffect(() => {
+    if (eventAtt && eventAtt.length > 0) {
+      let tot = 0;
+      let presentCount = 0;
+      eventAtt.forEach(event => {
+        tot = tot + Object.keys(event.attendance).length;
+        Object.keys(event.attendance).forEach(date => {
+          if (event.attendance[date].includes(user.rollno)) presentCount++;
+        });
+      });
+
+      setTotalEventAtt(presentCount / tot);
+    }
+  }, [eventAtt, user.rollno]);
 
   useEffect(() => {
     if (user.rollno) {
@@ -145,6 +161,7 @@ export default function StudentAtt() {
                   )}
                 </Tab>
                 <Tab className="p-3" eventKey="event" title="Events">
+                  <p className="fs-5">All over total event attendence: {((totalEventAtt) * 100).toFixed(2)}%</p>
                   <Accordion alwaysOpen>
                     {eventAtt && eventAtt.map(event => {
                       let presentCount = 0;

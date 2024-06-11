@@ -125,6 +125,7 @@ router.post("/login", async (req, res) => {
                     .json({ success: false, error: "Wrong Username or Password" });
         } else if (isemail.validate(username)) {
             const teacher = await LogDet.findOne({ username });
+            console.log(teacher);
             if (teacher && pass === teacher.password) {
                 const user = await Mentor.findOne({ email: username });
                 const jwt = createJwt(teacher.username, teacher.role);
@@ -222,7 +223,16 @@ router.post("/mobilelogin", async (req, res) => {
 router.post("/register", async (req, res) => {
     const { UserRole, InputInfo, encryptedDeviceInfo } = req.body;
     //console.log(UserRole, InputInfo, encryptedDeviceInfo);
+    const deviceInfoFromDb = await LogDet.findOne({
+        deviceInfo: encryptedDeviceInfo,
+    });
 
+    if (deviceInfoFromDb) {
+        return res.status(404).json({
+            success: false,
+            error: "Device already registered yet!",
+        });
+    }
     if (UserRole) {
         if (UserRole === "Student") {
             const collegeMail = InputInfo["College mail"];
@@ -369,7 +379,7 @@ router.post("/sendOTP", async (req, res) => {
             var mailOptions = {
                 from: process.env.EMAIL_ADDRESS,
                 to: q,
-                subject: "Password Reset OTP",
+                subject: "SRMAP - PMSS - Password Reset OTP",
                 text: `otp for resetting password: ${otp}`,
             };
             transporter.sendMail(mailOptions, async function (error, info) {

@@ -4,9 +4,10 @@ const logDetSchema = new mongoose.Schema({
     sno: String,
     username: String,
     password: String,
-    role: String
+    role: String,
+    deviceInfo: String
 }, {
-    timestamps: true
+    timestamps: true, minimize: false
 });
 
 const LogDet = mongoose.model('login_details2', logDetSchema);

@@ -101,13 +101,37 @@ router.post('/getEventAtt', async (req, res) => {
     }
 })
 
-router.get('/getSchedule/:year', async (req, res) => {
-    const { rollno } = req.body;
-    const year = req.params.year;
-    const schedule = await Schedule.find()
+router.post('/getSchedule/:year', async (req, res) => {
+    try {
+        const { rollno } = req.body;
+        const year = req.params.year;
 
-    res.status(200).json({ data: schedule })
-})
+        //console.log(11);
+
+        let schedule = await Promise.all(rollno.map(async r => {
+            return await Schedule.find({ batch: year, students: r });
+        }));
+
+        schedule = schedule.flat();
+        let result = {};
+
+        rollno.forEach(r => {
+            if (!result[r]) { result[r] = {}; }
+
+            schedule.forEach(t => {
+                //console.log(Object.keys(t.marks));
+                if (Object.keys(t.marks).includes(r)) {
+                    result[r][t.name] = t.marks[r];
+                }
+            });
+        });
+
+        return res.json({ success: true, data: { tests: result } });
+    } catch (error) {
+        console.error('Error fetching schedule:', error);
+        return res.status(500).json({ success: false, message: 'Internal Server Error' });
+    }
+});
 
 router.get('/getPC', async (req, res) => {
     try {

@@ -3,15 +3,31 @@ import Sidebar from './components/Sidebar';
 import Table from 'react-bootstrap/Table';
 import AuthCon from '../../context/AuthPro';
 import { format, isBefore, parseISO } from 'date-fns'
+import StudentCon from '../../context/StudentPro';
 
 export default function StudentHome() {
   const { auth, user } = useContext(AuthCon);
+  const { year } = useContext(StudentCon);
   const [comp, setComp] = useState([]);
   const baseURL = process.env.BASE_URL
+  const [ann, setAnn] = useState()
 
   useEffect(() => {
     if (user.batch) fetchCom();
   }, [user.batch]);
+
+  const fetchAnn = async () => {
+    const response = await fetch(`${baseURL}/student/getAnn/${year.curr}`, {
+      method: "GET",
+      headers: {
+        "Content-Type": "application/json",
+        "Authorization": `Bearer ${auth}`,
+      },
+    });
+    const res = await response.json();
+    console.log(res);
+    setAnn(res.data.ann)
+  };
 
   async function fetchCom() {
     try {
@@ -57,6 +73,11 @@ export default function StudentHome() {
     }
   }, [comp]);
 
+  useEffect(() => {
+    if (year.curr) fetchAnn();
+  }, [year.curr])
+
+
   return (
     <div className='container-fluid d-flex'>
       <div>
@@ -65,7 +86,8 @@ export default function StudentHome() {
       <div className='flex-fill container-fluid'>
         <div className='bg-white p-3 rounded-3 mb-3'>
           <p className='fs-5 fw-bold text-center'>Announcement</p>
-          <p><span className='fw-bold'>NOTE:</span> Students you may refer to the detailed attendance for further clarifications on above consolidated attendance, we have not considered Barclays attendance for computing weekly attendance. Also students are marked as "present" only if they have spent minimum of 80% time in the session. Students who have not met 80% in weekly attendance will not be allowed into placement process.</p>
+          <p className='fw-bold'>NOTE:</p>
+          <p> {ann && ann.des}</p>
         </div>
         <div>
           <Table id='example' striped bordered hover size="sm">
