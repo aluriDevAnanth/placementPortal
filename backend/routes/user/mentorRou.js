@@ -38,6 +38,14 @@ router.get('/getStudents/:year', async (req, res) => {
                     qq[w] = q;
                 })
                 res.json({ success: true, data: { studentList: qq } });
+            } else if (role == 'admin') {
+                let studentList = await Student.find({ yearofpassing: req.params.year })
+                let qq = {};
+                studentList.map((q, i) => {
+                    let w = q.rollno
+                    qq[w] = q;
+                })
+                res.json({ success: true, data: { studentList: qq } });
             }
         } else {
             res.json({
@@ -61,10 +69,10 @@ router.post('/getAtt', async (req, res) => {
             if (!att[i.rollno]) att[i.rollno] = [];
             att[i.rollno].push(i);
         }
-        //console.log(att)
-        res.status(200).json({ success: true, data: { att } })
+        return res.json({ success: true, data: { att } })
     } catch (e) {
         console.log(e);
+        return res.json({ success: true, error: 'interval server error' })
     }
 })
 
@@ -129,6 +137,7 @@ router.post('/getSchedule/:year', async (req, res) => {
         return res.json({ success: true, data: { tests: result } });
     } catch (error) {
         console.error('Error fetching schedule:', error);
+        console.log(error);
         return res.status(500).json({ success: false, message: 'Internal Server Error' });
     }
 });

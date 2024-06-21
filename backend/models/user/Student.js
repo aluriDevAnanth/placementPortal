@@ -12,7 +12,7 @@ const studentSchema2 = new mongoose.Schema({
   gender: String,
   residence: String,
   address: String,
-  CGPA: Number,
+  CGPA: String,
   leetcode: String,
   codechef: String,
   hackerrank: String,

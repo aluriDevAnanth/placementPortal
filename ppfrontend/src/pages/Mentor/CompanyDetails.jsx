@@ -29,7 +29,6 @@ export default function CompanyDetails() {
       },
     });
     const res = await response.json();
-    console.log(res.data);
     setCom(res.data);
   }
 
@@ -103,13 +102,7 @@ export default function CompanyDetails() {
             {students &&
               Object.keys(q.stages).map((stageCategory, index) => (
                 <Accordion key={index} alwaysOpen>
-                  <Accordion.Header>
-                    {stageCategory} - Total{' '}
-                    {Object.keys(q.stages[stageCategory]).filter(stageKey =>
-                      Object.keys(students).includes(stageKey)
-                    ).length}{' '}
-                    members
-                  </Accordion.Header>
+                  <Accordion.Header> {stageCategory} - Total {!(q.stages[stageCategory] === 'not applicable') ? Object.keys(q.stages[stageCategory]).filter(qq => q.stages[stageCategory][qq] === 'cleared' && Object.keys(students).includes(qq)).length : q.stages[stageCategory]} members </Accordion.Header>
                   <Accordion.Body>
                     <Table striped bordered hover responsive>
                       <thead>

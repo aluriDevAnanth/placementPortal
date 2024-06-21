@@ -25,14 +25,14 @@ export default function MentorRoute() {
         (auth && user != null && user.role === 'mentor') && (
           <Routes>
             <Route path='/' element={<MentorHome />} />
-            <Route path='/menteespractisedetails' element={<MenteesPractiseDetails />} />
-            <Route path='/studentprogress' element={<MenteeCompanyDashboard />} />
             <Route path='/menteestrainingattendance' element={<MenteesTrainingAttendance />} />
+            <Route path='/settings' element={<MentorSettings />} />
+            {/* <Route path='/menteespractisedetails' element={<MenteesPractiseDetails />} />
+            <Route path='/studentprogress' element={<MenteeCompanyDashboard />} />
             <Route path='/testschedule' element={<TestSchedule />} />
             <Route path='/mentorfeedback' element={<MentorFeedback />} />
             <Route path='/companydetails' element={<CompanyDetails />} />
-            <Route path='/menteesmail' element={<MenteesMail />} />
-            <Route path='/settings' element={<MentorSettings />} />
+            <Route path='/menteesmail' element={<MenteesMail />} /> */}
           </Routes>
         )
       }

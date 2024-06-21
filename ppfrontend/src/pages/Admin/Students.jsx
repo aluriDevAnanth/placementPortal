@@ -11,17 +11,78 @@ import { Toast } from 'primereact/toast';
 import { MultiSelect } from 'primereact/multiselect';
 import { FloatLabel } from 'primereact/floatlabel';
 import { Tooltip } from 'primereact/tooltip';
-import { format } from 'date-fns';
+import Form from '@rjsf/mui';
+import validator from '@rjsf/validator-ajv8';
+import { Dialog } from 'primereact/dialog';
 
 export default function Students() {
   const { auth } = useContext(AuthCon);
   const [file, setFile] = useState(null);
   const [jsonData, setJsonData] = useState();
-  const { stu, year, setStu } = useContext(AdminCon)
+  const [show, setShow] = useState();
+  const { stu, year, setStu, fetchStudents } = useContext(AdminCon)
   const toast = useRef(null);
   const [visibleColumns, setVisibleColumns] = useState([]);
   const dt = useRef(null);
   const baseURL = process.env.BASE_URL
+
+  const schema = {
+    "type": "object",
+    "properties": {
+      "10": { "type": "string" },
+      "12": { "type": "string" },
+      "name": { "type": "string" },
+      "rollno": { "type": "string" },
+      "phone": { "type": "string" },
+      "email": { "type": "string" },
+      "batch": { "type": "string" },
+      "personalemail": { "type": "string" },
+      "gender": { "type": "string" },
+      "residence": { "type": "string" },
+      "address": { "type": "string" },
+      "CGPA": { "type": "string" },
+      "leetcode": { "type": "string" },
+      "codechef": { "type": "string" },
+      "hackerrank": { "type": "string" },
+      "crcs": { "type": "string" },
+      "dept": { "type": "string" },
+      "parentname": { "type": "string" },
+      "parentphone": { "type": "string" },
+      "parentemail": { "type": "string" },
+      "mentoremail": { "type": "string" },
+      "spec": { "type": "string" },
+      "skill": { "type": "string" },
+      "yearofpassing": { "type": "string" },
+      "school": { "type": "string" },
+      "enrollmentstatus": { "type": "string" }
+    },
+    "required": [
+      "name",
+      "rollno",
+      "phone",
+      "email",
+      "batch",
+      "personalemail",
+      "gender",
+      "residence",
+      "address",
+      "CGPA",
+      "leetcode",
+      "codechef",
+      "hackerrank",
+      "crcs",
+      "dept",
+      "parentname",
+      "parentphone",
+      "parentemail",
+      "mentoremail",
+      "spec",
+      "skill",
+      "yearofpassing",
+      "school",
+      "enrollmentstatus"
+    ]
+  }
 
   const columns = [
     { field: 'personalemail', header: 'personalemail' },
@@ -39,18 +100,28 @@ export default function Students() {
     { field: '12', header: '12' },
   ];
 
-
-  const handleFileChange = (e) => {
-    setFile(e.target.files[0]);
+  let uiSchema = {
+    'ui:rootFieldId': 'myform',
+    "ui:order": [
+      "name", "rollno", "phone", "email", "batch", "personalemail", "gender", "residence", "address",
+      "CGPA", "leetcode", "codechef", "hackerrank", "crcs", "dept", "parentname", "parentphone", "parentemail", "mentoremail",
+      "spec", "skill", "yearofpassing", "school", "enrollmentstatus", "*"
+    ],
+    "ui:widget": "TextWidget",
+    "ui:options": {
+      "grid": {
+        "container": "compact"
+      }
+    }
   };
 
-  const handleSubmit = async (e) => {
+  const addBulkStu = async (e) => {
     e.preventDefault();
     const formData = new FormData();
     formData.append('file', file);
-
+    console.log(file);
     try {
-      const response = await fetch(`${baseURL}/admin/addStu`, {
+      const response = await fetch(`${baseURL}/admin/addBulkStu`, {
         method: 'POST',
         headers: {
           'Authorization': `Bearer ${auth}`,
@@ -58,12 +129,9 @@ export default function Students() {
         body: formData,
       });
 
-      if (!response.ok) {
-        throw new Error('Network response was not ok');
-      }
-
-      const data = await response.json();
-      setJsonData(data);
+      const res = await response.json();
+      console.log(res);
+      setJsonData(res);
     } catch (error) {
       console.error('Error uploading file:', error);
     }
@@ -73,31 +141,23 @@ export default function Students() {
     return <InputText type="text" value={options.value} onChange={(e) => options.editorCallback(e.target.value)} />;
   };
 
-  const onRowEditComplete = async (e) => {
-    console.log(11);
-    let _products = [...stu];
-    let { newData, index } = e;
-
-    _products[index] = newData;
-    console.log(newData);
-    setStu(_products);
-    toast.current.show({ severity: 'success', summary: 'Student Info updated', detail: newData.name, life: 3000 });
-
+  const editStu = async ({ formData }, e) => {
+    e.preventDefault();
+    console.log(formData);
     const response = await fetch(`${baseURL}/admin/editStu`, {
       method: 'POST',
       headers: {
         'Authorization': `Bearer ${auth}`,
         'Content-Type': 'application/json',
       },
-      body: JSON.stringify({ stu: newData }),
+      body: JSON.stringify({ stu: formData }),
     });
 
-    const res = response.json();
-    console.log(res.data);
-  };
-
-  const allowEdit = (rowData) => {
-    return true;
+    const res = await response.json();
+    if (res.success) toast.current.show({ severity: 'success', summary: 'Student Info updated', detail: formData.name, life: 3000 });
+    fetchStudents();
+    setShow(undefined)
+    //console.log(res);
   };
 
   const onColumnToggle = (event) => {
@@ -106,39 +166,31 @@ export default function Students() {
     setVisibleColumns(orderedSelectedColumns);
   };
 
-  const exportExcel = () => {
-    import('xlsx').then((xlsx) => {
-      const worksheet = xlsx.utils.json_to_sheet(stu);
-      const workbook = { Sheets: { data: worksheet }, SheetNames: ['data'] };
-      const excelBuffer = xlsx.write(workbook, {
-        bookType: 'xlsx',
-        type: 'array'
-      });
-
-      saveAsExcelFile(excelBuffer, 'Students');
-    });
-  };
-
-  const saveAsExcelFile = (buffer, fileName) => {
-    import('file-saver').then((module) => {
-      if (module && module.default) {
-        let EXCEL_TYPE = 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet;charset=UTF-8';
-        const data = new Blob([buffer], {
-          type: EXCEL_TYPE
-        });
-        const fileName = 'Students';
-        const EXCEL_EXTENSION = '.xlsx';
-        const formattedDate = format(new Date(), 'dd-MM-yyyy_hh:mm');
-        module.default.saveAs(data, `${fileName}_export_${formattedDate}${EXCEL_EXTENSION}`);
-      }
-    });
-  };
-
   const header = <div className="d-flex justify-content-between align-items-center  gap-2">
     <FloatLabel className="mt-3"><MultiSelect value={visibleColumns} options={columns} optionLabel="header" onChange={onColumnToggle} className="w-full sm:w-100rem" filter style={{ minWidth: "300px" }} display="chip" /> <label htmlFor="ms-cities">Select Columns</label></FloatLabel>
-    <Button type="button" onClick={exportExcel} data-pr-tooltip="XLS" ><i className="bi bi-file-earmark-spreadsheet"></i> Export into Excel</Button>
   </div>;
 
+  useEffect(() => {
+    let l = document.getElementById('myform');
+    if (l) {
+      l.classList.add('row');
+    }
+  }, []);
+
+  const addStudent = async ({ formData }, e) => {
+    //console.log('Data submitted: ', formData);
+    const response = await fetch(`${baseURL}/admin/addSingleStu`, {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${auth}`,
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({ stu: formData }),
+    });
+    const res = await response.json()
+    //console.log(res);
+    fetchStudents();
+  }
 
   return (
     <div>
@@ -146,45 +198,64 @@ export default function Students() {
         <div>
           <Sidebar />
         </div>
-        <div className='ms-3 me-3 container w-100'>
-          <h1>Student Management Portal</h1>
-          <form onSubmit={handleSubmit}>
+        <div className='ms-3 me-3 container w-100 bg-white rounded-3 p-3 '>
+          <p className='fs-1 fw-bolder'>Student Management Portal</p>
+          <form onSubmit={addBulkStu} className='border p-3 rounded-3 mb-3'>
             <div className="mb-3 d-flex column-gap-3 align-items-center">
-              <label htmlFor="formFile" className="form-label">Upload file here to add students</label>
+              <label htmlFor="formFile" className="form-label">Upload file here to add students in bulk</label>
               <div className='flex-fill'>
-                <input className="form-control" type="file" id="formFile" onChange={handleFileChange} accept=".xlsx, .xls" />
+                <input onChange={(e) => { setFile(e.target.files[0]) }} className="form-control" type="file" id="formFile" />
               </div>
               <Button type="submit" className="">Upload</Button>
             </div>
+            <p className='fw-bold m-0 ' > <span className='text-danger'>use google sheets to prepare excel |</span>  <span className=' text-dark fw-bold m-0' > the format of date is dd-MM-yyyy hh:mm aa(14-06-2024 04:51 AM) | </span> <span className='text-danger fw-bold m-0' > Dont use any formulas to make excel </span></p>
           </form>
-          {/* <div>
-            <pre>{allStu && JSON.stringify(allStu, null, 2)}</pre>
-          </div> */}
+          <Accordion className='rounded-3 ' >
+            <Accordion.Item eventKey={'0'}>
+              <Accordion.Header> Add Student </Accordion.Header>
+              <Accordion.Body >
+                <Form className='row' schema={schema} validator={validator} uiSchema={uiSchema} onSubmit={addStudent} noValidate={true}>
+                  <div>
+                    <button className='mt-3 btn btn-primary' type='submit'>Submit</button>
+                  </div>
+                </Form>
+              </Accordion.Body>
+            </Accordion.Item>
+          </Accordion>
         </div>
       </div>
-      {stu && <div className='mt-3 container-fluid'>
+      {stu && <div className='mt-3 container-fluid mb-3'>
         <p className='fs-3 fw-bold'>Batchs</p>
         <Toast ref={toast} />
+        <Dialog className='d-flex container-fluid' closeOnEscape={true} header="Edit Student" visible={show} maximizable style={{ width: '70vw' }} onHide={() => { setShow(false); }}>
+          <Form className='row' schema={schema} validator={validator} uiSchema={uiSchema} onSubmit={editStu} noValidate={true} formData={show}>
+            <div>
+              <button className='mt-3 btn btn-primary' type='submit'>Submit</button>
+            </div>
+          </Form>
+        </Dialog>
         <Tooltip target=".export-buttons>button" position="bottom" />
         <Accordion alwaysOpen defaultActiveKey={year.curr}>
           <Accordion.Item eventKey={year.curr}>
             <Accordion.Header> {year.curr} batch - {Object.values(stu).length} students </Accordion.Header>
             <Accordion.Body >
-              <DataTable ref={dt} reorderableColumns resizableColumns size='small' value={Object.values(stu)} showGridlines stripedRows paginator rows={20} rowsPerPageOptions={[30, 50, 100, 200]} tableStyle={{ minWidth: '50rem' }} filterDisplay="row" emptyMessage="No Students found." removableSort sortField="name" sortOrder={1} editMode="row" onRowEditComplete={onRowEditComplete} header={header}>
-                <Column field='name' header='Name' sortable filter filterMatchMode="contains" className='text-center' showFilterMenu={false} editor={(options) => textEditor(options)} />
-                <Column field='rollno' header='Rollno' sortable filter filterMatchMode="contains" className='text-center' showFilterMenu={false} editor={(options) => textEditor(options)} />
-                <Column field='phone' header='phone' sortable filter filterMatchMode="contains" className='text-center' showFilterMenu={false} editor={(options) => textEditor(options)} />
-                <Column field='email' header='email' sortable filter filterMatchMode="contains" className='text-center' showFilterMenu={false} editor={(options) => textEditor(options)} />
-                <Column field='CGPA' header='CGPA' sortable filter filterMatchMode="contains" className='text-center' showFilterMenu={false} editor={(options) => textEditor(options)} />
-                <Column field='mentoremail' header='Mentor Email' sortable filter filterMatchMode="contains" className='text-center' showFilterMenu={false} editor={(options) => textEditor(options)} />
-                <Column field='school' header='School' sortable filter filterMatchMode="contains" className='text-center' showFilterMenu={false} editor={(options) => textEditor(options)} />
-                <Column field='dept' header='Dept' sortable filter filterMatchMode="contains" className='text-center' showFilterMenu={false} editor={(options) => textEditor(options)} />
+              <DataTable ref={dt} reorderableColumns resizableColumns size='small' value={Object.values(stu)} showGridlines stripedRows paginator rows={20} rowsPerPageOptions={[30, 50, 100, 200]} tableStyle={{ minWidth: '50rem' }} filterDisplay="row" emptyMessage="No Students found." removableSort sortField="name" sortOrder={1} header={header}>
+                <Column field="options" header=" " body={(data, props) => {
+                  return <div> <div>  <button onClick={(event) => { setShow(data); }} style={{ backgroundColor: "#696747", color: "white" }} className="btn" >   <i className="bi bi-pencil-square"></i>  </button>   </div>  </div>
+                }} />
+                <Column field='name' header='Name' sortable filter filterMatchMode="contains" className='text-center' showFilterMenu={false} />
+                <Column field='rollno' header='Rollno' sortable filter filterMatchMode="contains" className='text-center' showFilterMenu={false} />
+                <Column field='phone' header='phone' sortable filter filterMatchMode="contains" className='text-center' showFilterMenu={false} />
+                <Column field='email' header='email' sortable filter filterMatchMode="contains" className='text-center' showFilterMenu={false} />
+                <Column field='CGPA' header='CGPA' sortable filter filterMatchMode="contains" className='text-center' showFilterMenu={false} />
+                <Column field='mentoremail' header='Mentor Email' sortable filter filterMatchMode="contains" className='text-center' showFilterMenu={false} />
+                <Column field='school' header='School' sortable filter filterMatchMode="contains" className='text-center' showFilterMenu={false} />
                 {/* OPTIONAL COL */}
                 {visibleColumns.map((col) => (
-                  <Column key={col.field} field={col.field} header={col.header} sortable filter filterMatchMode="contains" className='text-center' showFilterMenu={false} editor={(options) => textEditor(options)} />
+                  <Column key={col.field} field={col.field} header={col.header} sortable filter filterMatchMode="contains" className='text-center' showFilterMenu={false} />
                 ))}
                 {/* OPTIONAL COL */}
-                <Column rowEditor={allowEdit} bodyStyle={{ textAlign: 'center' }}></Column>
+
               </DataTable>
             </Accordion.Body>
           </Accordion.Item>

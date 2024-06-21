@@ -16,18 +16,7 @@ export default function StudentHome() {
     if (user.batch) fetchCom();
   }, [user.batch]);
 
-  const fetchAnn = async () => {
-    const response = await fetch(`${baseURL}/student/getAnn/${year.curr}`, {
-      method: "GET",
-      headers: {
-        "Content-Type": "application/json",
-        "Authorization": `Bearer ${auth}`,
-      },
-    });
-    const res = await response.json();
-    console.log(res);
-    setAnn(res.data.ann)
-  };
+
 
   async function fetchCom() {
     try {
@@ -77,6 +66,18 @@ export default function StudentHome() {
     if (year.curr) fetchAnn();
   }, [year.curr])
 
+  const fetchAnn = async () => {
+    const response = await fetch(`${baseURL}/student/getAnn/${year.curr}`, {
+      method: "GET",
+      headers: {
+        "Content-Type": "application/json",
+        "Authorization": `Bearer ${auth}`,
+      },
+    });
+    const res = await response.json();
+    console.log(res);
+    setAnn(res.data.ann)
+  };
 
   return (
     <div className='container-fluid d-flex'>
@@ -86,7 +87,6 @@ export default function StudentHome() {
       <div className='flex-fill container-fluid'>
         <div className='bg-white p-3 rounded-3 mb-3'>
           <p className='fs-5 fw-bold text-center'>Announcement</p>
-          <p className='fw-bold'>NOTE:</p>
           <p> {ann && ann.des}</p>
         </div>
         <div>

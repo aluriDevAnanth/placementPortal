@@ -91,7 +91,7 @@ router.get("/auth", async (req, res) => {
                 const admin = await Mentor.findOne({ email: username });
                 res.json({ success: true, data: { user: admin, role } });
             } else if (role === "parent") {
-                const parent = await Student.findOne({ rollno: username });
+                const parent = await Student.findOne({ rollno: username.split('_')[0] });
                 res.json({ success: true, data: { user: parent, role } });
             } else if (role === "coor") {
                 const admin = await Mentor.findOne({ email: username });
@@ -112,28 +112,24 @@ router.post("/login", async (req, res) => {
         const pass = md5(password);
         if (username.substr(0, 2) === "AP") {
             const student = await LogDet.findOne({ username });
-            const parent = await Parent.findOne({ rollno: username });
+            const parent = await LogDet.findOne({ username: username });
+            console.log(username, parent);
             if (student && pass === student.password) {
                 const jwt = createJwt(student.username, student.role);
-                res.json({ success: true, user: student, jwt });
-            } else if (parent && pass === parent.psd) {
-                const jwt = createJwt(parent.rollno, "parent");
-                res.json({ success: true, user: { ...parent, role: "parent" }, jwt });
-            } else
-                res
-                    .status(404)
-                    .json({ success: false, error: "Wrong Username or Password" });
+                return res.json({ success: true, user: student, jwt });
+            } else if (parent && pass === parent.password) {
+                const jwt = createJwt(parent.username, "parent");
+                return res.json({ success: true, user: { ...parent, role: "parent" }, jwt });
+            } else return res.status(404).json({ success: false, error: "Wrong Username or Password" });
         } else if (isemail.validate(username)) {
             const teacher = await LogDet.findOne({ username });
             console.log(teacher);
             if (teacher && pass === teacher.password) {
                 const user = await Mentor.findOne({ email: username });
                 const jwt = createJwt(teacher.username, teacher.role);
-                res.json({ success: true, user, jwt });
+                return res.json({ success: true, user, jwt });
             } else {
-                res
-                    .status(404)
-                    .json({ success: false, error: "Wrong Username or Password" });
+                return res.status(404).json({ success: false, error: "Wrong Username or Password" });
             }
         } else if (validateNumber(username)) {
             const student = await Student.findOne({ phone: username });

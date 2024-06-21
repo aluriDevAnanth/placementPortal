@@ -52,7 +52,8 @@ export default function StuCompFeed({ SCF, completed, setSCF, fetchStuCompFeed }
       </div>
       <div className='ms-3 flex-fill container-fluid mb-5'>
         <Accordion defaultActiveKey="0" alwaysOpen>
-          {SCF && SCF.map((q, i) => {
+          {console.log(SCF)}
+          {SCF.length > 0 ? SCF.map((q, i) => {
             return (
               <div key={i}>
                 {!completed && <p className='text-danger'>first fill the company feedbacks to access other features. if you dont you will be redirected to this page always</p>}
@@ -261,7 +262,7 @@ export default function StuCompFeed({ SCF, completed, setSCF, fetchStuCompFeed }
                 </Accordion.Item>
               </div>
             );
-          })}
+          }) : <p className='text-danger' >You are not eligible for any companies</p>}
         </Accordion>
       </div>
     </div>

@@ -12,6 +12,7 @@ export default function MentorHome() {
   const { user, auth } = useContext(AuthCon)
   const [com, setCom] = useState([]);
   const baseURL = process.env.BASE_URL
+  const [ann, setAnn] = useState()
 
   useEffect(() => {
     if (year.curr) fetchCom();
@@ -47,6 +48,22 @@ export default function MentorHome() {
     backgroundColor: "#696747 !important",
   };
 
+  useEffect(() => {
+    if (year.curr) fetchAnn();
+  }, [year.curr])
+
+  const fetchAnn = async () => {
+    const response = await fetch(`${baseURL}/student/getAnn/${year.curr}`, {
+      method: "GET",
+      headers: {
+        "Content-Type": "application/json",
+        "Authorization": `Bearer ${auth}`,
+      },
+    });
+    const res = await response.json();
+    setAnn(res.data.ann)
+  };
+
 
   return (
     user && <div className='bodyBG'>
@@ -58,7 +75,7 @@ export default function MentorHome() {
           <div className='flex-fill container-fluid'>
             <div className='bg-white p-3 rounded-3 mb-3'>
               <p className='fs-5 fw-bold text-center'>Announcement</p>
-              <p><span className='fw-bold'>NOTE:</span> Students you may refer to the detailed attendance for further clarifications on above consolidated attendance, we have not considered Barclays attendance for computing weekly attendance. Also students are marked as "present" only if they have spent minimum of 80% time in the session. Students who have not met 80% in weekly attendance will not be allowed into placement process.</p>
+              <p> {ann && ann.des}</p>
             </div>
             {<Search mystyle={mystyle} students={students} />}
             <div className='bg-white p-3 rounded-3 mt-3'>

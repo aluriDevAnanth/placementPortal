@@ -9,6 +9,7 @@ import Events from './Admin/Events'
 import Students from './Admin/Students'
 import Attendence from './Admin/Attendence'
 import Test from './Admin/Test'
+import CurrTest from './Admin/CurrTest'
 import Companies from './Admin/Companies'
 import CurrEvent from './Admin/CurrEvent'
 import Announcements from './Admin/Announcements'
@@ -31,6 +32,7 @@ export default function MentorRoute() {
           <Route path='/companies' element={<Companies />} />
           <Route path='/attendence' element={<Attendence />} />
           <Route path='/tests' element={<Test />} />
+          <Route path='/test/:tid' element={<CurrTest />} />
           <Route path='/announcements' element={<Announcements />} />
           <Route path='/settings' element={<AdminSettings />} />
         </Routes>

@@ -1,36 +1,41 @@
-import React, { useContext, useState, useEffect } from 'react'
-import Sidebar from './components/Sidebar'
-import HODCon from '../../context/HODPro'
-import * as XLSX from 'xlsx';
-import { format, parseISO } from 'date-fns';
-import { DataTable } from 'primereact/datatable';
-import { Column } from 'primereact/column';
+import React, { useContext, useState, useEffect } from 'react';
+import Sidebar from './components/Sidebar';
+import DeanCon from '../../context/DeanPro';
+import ExcelJS from 'exceljs';
 
 export default function MentorFeedback() {
-  const { feed, mentors } = useContext(HODCon)
-  const [filteredFeed, setFilteredFeed] = useState()
-  const [comp, setComp] = useState()
-  const [search, setSearch] = useState()
+  const { feed, mentors } = useContext(DeanCon);
+  const [filteredFeed, setFilteredFeed] = useState();
+  const [comp, setComp] = useState();
 
-  const exportToExcel = () => {
+  const exportToExcel = async () => {
     const rows = document.querySelectorAll('table tr');
-    const data = Array.from(rows).map(row => {
-      const rowData = {};
-      row.querySelectorAll('th, td').forEach((cell, index) => {
-        rowData[`column${index + 1}`] = cell.innerText;
-      });
-      return rowData;
+    const workbook = new ExcelJS.Workbook();
+    const worksheet = workbook.addWorksheet('Table Data');
+
+    // Add the header row
+    const headerRow = [];
+    rows[0].querySelectorAll('th').forEach((cell) => {
+      headerRow.push(cell.innerText);
     });
-    const worksheet = XLSX.utils.json_to_sheet(data);
-    const workbook = XLSX.utils.book_new();
-    XLSX.utils.book_append_sheet(workbook, worksheet, 'Table Data');
-    const excelBuffer = XLSX.write(workbook, { bookType: 'xlsx', type: 'array' });
-    const blob = new Blob([excelBuffer], { type: 'application/octet-stream' });
+    worksheet.addRow(headerRow);
+
+    // Add the data rows
+    Array.from(rows).slice(1).forEach((row) => {
+      const rowData = [];
+      row.querySelectorAll('td').forEach((cell) => {
+        rowData.push(cell.innerText);
+      });
+      worksheet.addRow(rowData);
+    });
+
+    // Write the workbook to a buffer
+    const buffer = await workbook.xlsx.writeBuffer();
+    const blob = new Blob([buffer], { type: 'application/octet-stream' });
     const url = URL.createObjectURL(blob);
     const link = document.createElement('a');
-    link.href = url; console.log(11, search);
-    const currentDate = format(new Date(), 'yyyy-MM-dd');
-    link.setAttribute('download', `table_data_for_mentor_feedback_of_${search.mentor}_${search.type}_${search.company}_${currentDate}.xlsx`);
+    link.href = url;
+    link.setAttribute('download', 'table_data.xlsx');
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
@@ -41,18 +46,12 @@ export default function MentorFeedback() {
     if (feed) {
       let uniqueComp = [...new Set(feed.map(item => item.modeofcom !== null && item.modeofcom))];
       uniqueComp = uniqueComp.filter(item => {
-        return item !== false /* && item !== 'Phone' &&
-          item !== 'Email' &&
-          item !== 'Whatsapp' &&
-          item !== 'Other' && */
-         /*  item !== 'In Person' */;
+        return item !== false;
       });
       const sortedComp = uniqueComp.sort((a, b) => a.localeCompare(b));
-      setComp(sortedComp)
-      //console.log(comp)
+      setComp(sortedComp);
     }
-  }, [feed])
-
+  }, [feed]);
 
   const handleSearch = (e) => {
     e.preventDefault();
@@ -64,20 +63,10 @@ export default function MentorFeedback() {
       q[key] = value;
     }
     const { mentor, type, company } = q;
-    setSearch(q)
+
     const filteredData = feed.filter(item => (item.mentorname === mentor && item.reviewtype === type && item.modeofcom === company));
 
     setFilteredFeed(filteredData.reverse());
-    //console.log(q, filteredData)
-  }
-
-  const formatDateColumn = (rowData) => {
-    try {
-      return format(parseISO(rowData.createdAt), 'dd/MM/yyyy');
-    } catch (error) {
-      console.log(error);
-      return rowData.createdAt ? rowData.createdAt : rowData.timestm
-    }
   };
 
   return (
@@ -86,13 +75,13 @@ export default function MentorFeedback() {
         <div className='me-3'>
           <Sidebar />
         </div>
-        {feed && <div className='me-3'>
+        {feed && <div className='me-5'>
           <div className='d-flex'>
             <form onSubmit={handleSearch} className='d-flex'>
               <p className="fw-bold fs-3 me-2">Search</p>
               <div className='me-2'>
                 {mentors && <select name='mentor' type="text" className='form-select' placeholder='Select Mentor Name' >
-                  <option selected disabled value="">Select teacher </option>
+                  <option selected disabled value="">Select feedback type</option>
                   {mentors.map((q, i) => {
                     return <option key={i} value={q.name}>{q.name}</option>
                   })}
@@ -107,7 +96,7 @@ export default function MentorFeedback() {
               </div>
               <div className='me-2'>
                 {comp && <select name='company' defaultValue={'def'} type="text" className='form-select' placeholder='Select Mentor Name' >
-                  <option selected value="def" disabled >Select Company</option>
+                  <option selected value="def" disabled >Select feedback type</option>
                   {comp.map((q, i) => {
                     return <option key={i} value={q}>{q}</option>
                   })}
@@ -122,19 +111,35 @@ export default function MentorFeedback() {
             </div>
           </div>
           <div>
-            {filteredFeed && (
-              <DataTable value={filteredFeed} showGridlines stripedRows paginator rows={10} rowsPerPageOptions={[25, 50]} sortField="0" sortOrder={1} removableSort className="p-datatable-striped" filterDisplay="row" emptyMessage="No Mentor found.">
-                <Column field="mentorname" header="Mentor" className="text-center" sortable filter filterMatchMode="contains" showFilterMenu={false} />
-                <Column field="rollno" header="Roll No" className="text-center" sortable filter filterMatchMode="contains" showFilterMenu={false} />
-                <Column field="contactperson" header="Contacted Person" className="text-center" sortable filter filterMatchMode="contains" showFilterMenu={false} />
-                <Column field="modeofcom" header="Feedback About" className="text-center" sortable filter filterMatchMode="contains" showFilterMenu={false} />
-                <Column field="menreview" header="Description" className="text-center" sortable filter filterMatchMode="contains" showFilterMenu={false} />
-                <Column field="timestm" header="Time" body={formatDateColumn} className="text-center" sortable filter filterMatchMode="contains" showFilterMenu={false} />
-              </DataTable>
-            )}
+            <table className='table table-bordered table-striped table-hover'>
+              <thead>
+                <tr className="text-center">
+                  <th>Mentor</th>
+                  <th>Roll No</th>
+                  <th>Contacted Person</th>
+                  <th>Feedback About</th>
+                  <th>Description</th>
+                  <th>Time</th>
+                </tr>
+              </thead>
+              <tbody>
+                {filteredFeed &&
+                  filteredFeed.map((q, i) => {
+                    return <tr key={i} className="text-center">
+                      <td>{q.mentorname}</td>
+                      <td>{q.rollno}</td>
+                      <td>{q.contactperson}</td>
+                      <td>{q.modeofcom}</td>
+                      <td>{q.menreview}</td>
+                      <td>{q.timestm}</td>
+                    </tr>
+                  })
+                }
+              </tbody>
+            </table>
           </div>
         </div>}
       </div>
     </div>
-  )
+  );
 }

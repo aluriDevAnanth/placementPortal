@@ -1,27 +1,37 @@
-import React, { useContext, useState, useEffect } from 'react'
-import Sidebar from './components/Sidebar'
-import DeanCon from '../../context/DeanPro'
-import * as XLSX from 'xlsx';
+import React, { useContext, useState, useEffect } from 'react';
+import Sidebar from './components/Sidebar';
+import DeanCon from '../../context/DeanPro';
+import ExcelJS from 'exceljs';
 
 export default function MentorFeedback() {
-  const { feed, mentors } = useContext(DeanCon)
-  const [filteredFeed, setFilteredFeed] = useState()
-  const [comp, setComp] = useState()
+  const { feed, mentors } = useContext(DeanCon);
+  const [filteredFeed, setFilteredFeed] = useState();
+  const [comp, setComp] = useState();
 
-  const exportToExcel = () => {
+  const exportToExcel = async () => {
     const rows = document.querySelectorAll('table tr');
-    const data = Array.from(rows).map(row => {
-      const rowData = {};
-      row.querySelectorAll('th, td').forEach((cell, index) => {
-        rowData[`column${index + 1}`] = cell.innerText;
-      });
-      return rowData;
+    const workbook = new ExcelJS.Workbook();
+    const worksheet = workbook.addWorksheet('Table Data');
+
+    // Add the header row
+    const headerRow = [];
+    rows[0].querySelectorAll('th').forEach((cell) => {
+      headerRow.push(cell.innerText);
     });
-    const worksheet = XLSX.utils.json_to_sheet(data);
-    const workbook = XLSX.utils.book_new();
-    XLSX.utils.book_append_sheet(workbook, worksheet, 'Table Data');
-    const excelBuffer = XLSX.write(workbook, { bookType: 'xlsx', type: 'array' });
-    const blob = new Blob([excelBuffer], { type: 'application/octet-stream' });
+    worksheet.addRow(headerRow);
+
+    // Add the data rows
+    Array.from(rows).slice(1).forEach((row) => {
+      const rowData = [];
+      row.querySelectorAll('td').forEach((cell) => {
+        rowData.push(cell.innerText);
+      });
+      worksheet.addRow(rowData);
+    });
+
+    // Write the workbook to a buffer
+    const buffer = await workbook.xlsx.writeBuffer();
+    const blob = new Blob([buffer], { type: 'application/octet-stream' });
     const url = URL.createObjectURL(blob);
     const link = document.createElement('a');
     link.href = url;
@@ -36,18 +46,12 @@ export default function MentorFeedback() {
     if (feed) {
       let uniqueComp = [...new Set(feed.map(item => item.modeofcom !== null && item.modeofcom))];
       uniqueComp = uniqueComp.filter(item => {
-        return item !== false /* && item !== 'Phone' &&
-          item !== 'Email' &&
-          item !== 'Whatsapp' &&
-          item !== 'Other' && */
-         /*  item !== 'In Person' */;
+        return item !== false;
       });
       const sortedComp = uniqueComp.sort((a, b) => a.localeCompare(b));
-      setComp(sortedComp)
-      //console.log(comp)
+      setComp(sortedComp);
     }
-  }, [feed])
-
+  }, [feed]);
 
   const handleSearch = (e) => {
     e.preventDefault();
@@ -63,9 +67,7 @@ export default function MentorFeedback() {
     const filteredData = feed.filter(item => (item.mentorname === mentor && item.reviewtype === type && item.modeofcom === company));
 
     setFilteredFeed(filteredData.reverse());
-    //console.log(q, filteredData)
-  }
-
+  };
 
   return (
     <div>
@@ -124,12 +126,12 @@ export default function MentorFeedback() {
                 {filteredFeed &&
                   filteredFeed.map((q, i) => {
                     return <tr key={i} className="text-center">
-                      <th>{q.mentorname}</th>
-                      <th>{q.rollno}</th>
-                      <th>{q.contactperson}</th>
-                      <th>{q.modeofcom}</th>
-                      <th>{q.menreview}</th>
-                      <th>{q.timestm}</th>
+                      <td>{q.mentorname}</td>
+                      <td>{q.rollno}</td>
+                      <td>{q.contactperson}</td>
+                      <td>{q.modeofcom}</td>
+                      <td>{q.menreview}</td>
+                      <td>{q.timestm}</td>
                     </tr>
                   })
                 }
@@ -139,5 +141,5 @@ export default function MentorFeedback() {
         </div>}
       </div>
     </div>
-  )
+  );
 }

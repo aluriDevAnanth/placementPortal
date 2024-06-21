@@ -380,60 +380,62 @@ const formatData = (data) => {
 router.get('/getPracDet', async (req, res) => {
   let token;
   const authHeader = req.headers["authorization"];
-  if (authHeader !== undefined) {
-    token = authHeader.split(" ")[1];
-  }
-
-  if (token) {
-    const { username, role } = jwt.verify(token, 'qwertyuiop');
-    //console.log(role);
-    if (role === "student" || role === "parent" || role === "mentor") {
-      const fetch = require('node-fetch');
-      try {
-        let chef = await axios.get(`https://www.codechef.com/users/ananth12345`);
-        chef = new JSDOM(chef.data);
-        chef = chef.window.document;
-
-        let leet = await fetch('https://leetcode.com/graphql', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            'Referer': 'https://leetcode.com'
-          },
-          body: JSON.stringify({ query: query, variables: { username: 'devananth_aluri' } }),
-        })
-        leet = await leet.json()
-        leet = formatData(leet.data);
-        //console.log(leet);
-
-        res.status(200).send({
-          success: true,
-          data: {
-            codechef: {
-              name: chef.querySelector('.user-details-container').children[0].children[1].textContent,
-              stars: chef.querySelector('.rating').textContent || "unrated",
-              currentRating: parseInt(chef.querySelector(".rating-number").textContent),
-              highestRating: parseInt(chef.querySelector(".rating-number").parentNode.children[4].textContent.split('Rating')[1]),
-              globalRank: parseInt(chef.querySelector('.rating-ranks').children[0].children[0].children[0].children[0].innerHTML),
-              countryRank: parseInt(chef.querySelector('.rating-ranks').children[0].children[1].children[0].children[0].innerHTML),
-            },
-            leetcode: {
-              ...leet
-            }
-          }
-        });
-      } catch (err) {
-        console.log(err);
-        res.send({ success: false, error: err });
-      }
-
+  try {
+    if (authHeader !== undefined) {
+      token = authHeader.split(" ")[1];
     }
-  } else {
-    res.json({
-      success: false,
-      error: 'error'
-    });
+    console.log(req.headers);
+    if (token) {
+      const { username, role } = jwt.verify(token, 'qwertyuiop');
+      console.log(role);
+      if (role === "student" || role === "parent" || role === "mentor") {
+        const fetch = require('node-fetch');
+        try {
+          let chef = await axios.get(`https://www.codechef.com/users/ananth12345`);
+          chef = new JSDOM(chef.data);
+          chef = chef.window.document;
+
+          let leet = await fetch('https://leetcode.com/graphql', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              'Referer': 'https://leetcode.com'
+            },
+            body: JSON.stringify({ query: query, variables: { username: 'devananth_aluri' } }),
+          })
+          leet = await leet.json()
+          leet = formatData(leet.data);
+          //console.log(leet);
+
+          res.status(200).send({
+            success: true,
+            data: {
+              codechef: {
+                name: chef.querySelector('.user-details-container').children[0].children[1].textContent,
+                stars: chef.querySelector('.rating').textContent || "unrated",
+                currentRating: parseInt(chef.querySelector(".rating-number").textContent),
+                highestRating: parseInt(chef.querySelector(".rating-number").parentNode.children[4].textContent.split('Rating')[1]),
+                globalRank: parseInt(chef.querySelector('.rating-ranks').children[0].children[0].children[0].children[0].innerHTML),
+                countryRank: parseInt(chef.querySelector('.rating-ranks').children[0].children[1].children[0].children[0].innerHTML),
+              },
+              leetcode: {
+                ...leet
+              }
+            }
+          });
+        } catch (err) {
+          console.log(err);
+          res.send({ success: false, error: err });
+        }
+
+      }
+    } else {
+      return res.json({ success: false, error: 'token error' });
+    }
+  } catch (error) {
+    return res.json({ success: false, error: 'internal server error' });
   }
+
 })
 
 router.get('/getAnn/:year', async (req, res) => {
@@ -443,7 +445,7 @@ router.get('/getAnn/:year', async (req, res) => {
     if (authHeader !== undefined) token = authHeader.split(" ")[1];
     if (token) {
       const { username, role } = jwt.verify(token, 'qwertyuiop');
-      if (role === "student") {
+      if (role === "student" || role === "parent" || role === "mentor") {
         const q = await Ann.findOne({ batch: req.params.year }).sort({ createdAt: -1 });
         return res.json({ success: true, data: { ann: q } });
       } else {

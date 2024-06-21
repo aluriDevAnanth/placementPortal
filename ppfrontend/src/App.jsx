@@ -35,37 +35,30 @@ function App() {
     <>
       {user && user.role === 'student' &&
         <StudentPro>
-          {console.log("StudentRoute", user)}
           <StudentRoute />
         </StudentPro>}
       {user && user.role === 'parent' &&
         <ParentPro>
-          {console.log("ParentRoute", user)}
           <ParentRoute />
         </ParentPro>}
       {user && user.role === 'mentor' &&
         <MentorPro>
-          {console.log("MentorRoute", user)}
           <MentorRoute />
         </MentorPro>}
       {user && user.role === 'dean' &&
         <DeanPro>
-          {console.log("DeanRoute", user)}
           <DeanRoute />
         </DeanPro>}
       {user && user.role === 'HOD' &&
         <HODPro>
-          {console.log("HodRoute", 1, user)}
           <HODRoute />
         </HODPro>}
       {user && user.role === 'admin' &&
         <AdminPro>
-          {console.log("AdminRoute", 1, user)}
           <AdminRoute />
         </AdminPro>}
       {user && user.role === 'coor' &&
         <AdminPro>
-          {console.log("AttCoorRoute", 1, user)}
           <CoorRoute />
         </AdminPro>}
       <Routes>

@@ -5,10 +5,10 @@ import AuthCon from './AuthPro';
 const AdminCon = createContext({});
 
 export function AdminPro({ children }) {
-  const [year, setYear] = useState({});
-  const [mentors, setMentors] = useState([])
-  const [comp, setComp] = useState([])
-  const [stu, setStu] = useState([])
+  const [year, setYear] = useState();
+  const [mentors, setMentors] = useState()
+  const [comp, setComp] = useState()
+  const [stu, setStu] = useState()
   const [feed, setFeed] = useState()
   const { auth } = useContext(AuthCon)
   const baseURL = process.env.BASE_URL
@@ -100,11 +100,11 @@ export function AdminPro({ children }) {
   }, [auth]);
 
   useEffect(() => {
-    if (auth && year.curr) { fetchStudents(); fetchMentors(); fetchComp(); fetchFeed(); }
-  }, [auth, year.curr])
+    if (auth && year && year.curr) { fetchStudents(); fetchMentors(); fetchComp(); fetchFeed(); }
+  }, [auth, year?.curr])
 
   return (
-    <AdminCon.Provider value={{ year, setYear, mentors, stu, comp, feed, setStu }}>{children}</AdminCon.Provider>
+    <AdminCon.Provider value={{ year, setYear, mentors, stu, comp, feed, setStu, fetchStudents, fetchComp }}>{children}</AdminCon.Provider>
   );
 }
 

@@ -3,11 +3,12 @@ const router = express.Router()
 const md5 = require('md5');
 var isemail = require('isemail');
 var jwt = require('jsonwebtoken');
-const { format } = require('date-fns')
+const { format, parse } = require('date-fns')
 const multer = require('multer');
 const xlsx = require('xlsx');
 const fs = require('fs');
 const ExcelJS = require('exceljs');
+const csvParser = require('csv-parser');
 
 const upload = multer({ dest: 'uploads/' });
 
@@ -38,10 +39,9 @@ function isEventExpired(event) {
 }
 
 function isEventHappening(event) {
-  const currentTime = new Date(); // Get the current time
+  const currentTime = new Date();
   const startTime = new Date(event.startTime);
   const endTime = new Date(event.endTime);
-
   if (event.rec === "once") {
     return currentTime >= startTime && currentTime <= endTime;
   } else if (event.rec === "daily") {
@@ -64,18 +64,8 @@ function isEventHappening(event) {
     }
     return currentTime >= startTime && currentTime <= endTime;
   } else {
-    throw new Error("Invalid recurrence type");
+    throw new Error("Invalid recurrence type in data it is niether daily, weekly or once");
   }
-}
-
-function generateRandomString(length) {
-  const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
-  let result = '';
-  for (let i = 0; i < length; i++) {
-    result += chars.charAt(Math.floor(Math.random() * chars.length));
-  }
-  attToken = result;
-  return result;
 }
 
 router.get('/getEvents', async (req, res) => {
@@ -101,16 +91,11 @@ router.get('/getEvents', async (req, res) => {
           data: eventsWithExpiration
         });
       } else {
-        res.json({
-          success: false,
-          error: 'wrong role'
-        });
+        res.json({ success: false, error: 'wrong role' });
       }
     } catch (error) {
-      res.json({
-        success: false,
-        error: 'invalid token'
-      });
+      console.log(error);
+      res.json({ success: false, error: 'invalid token' });
     }
   } else {
     res.json({
@@ -236,26 +221,17 @@ router.post('/postEvent', async (req, res) => {
     const { username, role } = jwt.verify(token, 'qwertyuiop');
 
     if (role === "admin") {
-      //console.log(req.body.data);
+      //console.log(req.body);
       let q = await Event.create({ ...req.body.data, attendance: {} })
 
-      res.json({
-        success: true,
-        data: q
-      });
+      res.json({ success: true, data: q });
 
     } else {
-      res.json({
-        success: false,
-        error: 'wrong role'
-      });
+      res.json({ success: false, error: 'wrong role' });
     }
 
   } else {
-    res.json({
-      success: false,
-      error: 'wrong token'
-    });
+    res.json({ success: false, error: 'wrong token' });
   }
 })
 
@@ -272,16 +248,10 @@ router.delete('/deleteEvent/:id', async (req, res) => {
       const { id } = req.params;
       let q = await Event.findOneAndDelete({ _id: id })
       //console.log(id);
-      res.json({
-        success: true,
-        data: q
-      });
+      res.json({ success: true, data: q });
 
     } else {
-      res.json({
-        success: false,
-        error: 'wrong role'
-      });
+      res.json({ success: false, error: 'wrong role' });
     }
 
   } else {
@@ -326,7 +296,7 @@ router.put('/putEvent', async (req, res) => {
   }
 })
 
-router.post('/addStu', upload.single('file'), async (req, res) => {
+router.post('/addBulkStu', upload.single('file'), async (req, res) => {
   let token;
   const authHeader = req.headers["authorization"];
   if (authHeader !== undefined) {
@@ -343,45 +313,47 @@ router.post('/addStu', upload.single('file'), async (req, res) => {
             return res.status(400).json({ success: false, error: 'No file uploaded' });
           }
 
-          const workbook = xlsx.readFile(file.path);
-          const sheet_name_list = workbook.SheetNames;
-          const jsonData = xlsx.utils.sheet_to_json(workbook.Sheets[sheet_name_list[0]]);
-          //console.log(jsonData[0]);
-          const parentAccounts = [];
-          for (let i of jsonData) {
-            const studentExists = await Student.findOne({ rollno: i.rollno });
-            if (!studentExists) {
-              await Student.create({ ...i, yearofpassing: i['year of passing'] });
-            }
-            const logExists = await LogDet.findOne({ username: i.rollno });
+          const results = [];
+          fs.createReadStream(file.path)
+            .pipe(csvParser())
+            .on('data', (data) => results.push(data))
+            .on('end', async () => {
+              const parentAccounts = [];
+              for (let i of results) {
+                //console.log(i);
+                const studentExists = await Student.findOne({ rollno: i.rollno });
+                if (!studentExists) {
+                  await Student.create({ ...i, yearofpassing: i['year of passing'] });
+                }
+                const logExists = await LogDet.findOne({ username: i.rollno });
 
-            if (!logExists) {
-              const q = { username: i.rollno, password: md5(i.rollno), role: "student" };
-              let rand = Math.floor(Math.random() * 1000000) + 1;
-              console.log(rand);
-              let p = { username: `${i.rollno}_parent`, password: md5(rand), role: "parent" };
-              await LogDet.create(q);
-              let pp = await LogDet.create(p);
-              parentAccounts.push({ ...p, password: rand });
-            }
-          }
-          res.json({ success: true, data: jsonData });
+                if (!logExists) {
+                  const q = { username: i.rollno, password: md5(i.rollno), role: "student" };
+                  let rand = (Math.floor(Math.random() * 1000000) + 1).toString().trim();
+                  let p = { username: `${i.rollno}_parent`, password: md5(md5(`${i.rollno}_parent`)), role: "parent" };
+                  await LogDet.create(q);
+                  let pp = await LogDet.create(p);
+                  parentAccounts.push({ ...p, password: md5(`${i.rollno}_parent`) });
+                }
+              }
+              res.json({ success: true, data: results });
 
-          fs.writeFile('parentDet.json', JSON.stringify(parentAccounts, null, 2), (err) => {
-            if (err) {
-              console.error("Error writing file:", err);
-            } else {
-              console.log(`File has been saved as 'parentDet.json'`);
-            }
-          });
+              fs.writeFile('parentDet.json', JSON.stringify(parentAccounts, null, 2), (err) => {
+                if (err) {
+                  console.error("Error writing file:", err);
+                } else {
+                  console.log(`File has been saved as 'parentDet.json'`);
+                }
+              });
 
-          fs.unlink(file.path, (err) => {
-            if (err) {
-              console.error('Error deleting the file:', err);
-            } else {
-              //console.log('Uploaded file deleted successfully');
-            }
-          });
+              fs.unlink(file.path, (err) => {
+                if (err) {
+                  console.error('Error deleting the file:', err);
+                } else {
+                  console.log('Uploaded file deleted successfully');
+                }
+              });
+            });
 
         } catch (error) {
           console.error('Error processing file:', error);
@@ -407,7 +379,6 @@ router.post('/addStu', upload.single('file'), async (req, res) => {
       error: 'internal error'
     });
   }
-
 });
 
 router.post('/editStu', async (req, res) => {
@@ -420,8 +391,8 @@ router.post('/editStu', async (req, res) => {
       const { username, role } = jwt.verify(token, 'qwertyuiop');
       if (role === "admin") {
         const stu = req.body.stu;
-        let s = await Student2.findOneAndUpdate({ _id: stu._id }, { ...stu }, { new: true })
-        //console.log(1, stu._id, s);
+        let s = await Student.findOneAndUpdate({ _id: stu._id }, { ...stu }, { new: true });
+        //console.log('updated student: ', s);
         res.json({ success: true, data: { stu: s } })
       } else {
         res.json({ success: false, error: 'wrong role' });
@@ -429,16 +400,41 @@ router.post('/editStu', async (req, res) => {
     } else {
       res.json({ success: false, error: 'wrong token' });
     }
-  } catch (e) { res.json({ success: false, error: 'internal error' }); }
+  } catch (e) {
+    // console.log(e); 
+    res.json({ success: false, error: 'internal error' });
+  }
+
+});
+
+router.post('/addSingleStu', async (req, res) => {
+  let token;
+  const authHeader = req.headers["authorization"];
+  if (authHeader !== undefined) token = authHeader.split(" ")[1];
+  try {
+    if (token) {
+      const { username, role } = jwt.verify(token, 'qwertyuiop');
+      if (role === "admin") {
+        let s = await Student.create(req.body.stu)
+        //console.log(s);
+        res.json({ success: true, data: { stu: s } });
+      } else {
+        res.json({ success: false, error: 'wrong role' });
+      }
+    } else {
+      res.json({ success: false, error: 'wrong token' });
+    }
+  } catch (e) {
+    console.log(e);
+    res.json({ success: false, error: 'internal error' });
+  }
 
 });
 
 router.get('/getStu/:year', async (req, res) => {
   let token;
   const authHeader = req.headers["authorization"];
-  if (authHeader !== undefined) {
-    token = authHeader.split(" ")[1];
-  }
+  if (authHeader !== undefined) token = authHeader.split(" ")[1];
   try {
     if (token) {
       const { username, role } = jwt.verify(token, 'qwertyuiop');
@@ -470,7 +466,6 @@ router.get('/getStu/:year', async (req, res) => {
       error: 'internal error'
     });
   }
-
 });
 
 router.get('/getYears', async (req, res) => {
@@ -591,7 +586,6 @@ router.post("/markAtt", async (req, res) => {
     });
   }
 });
-
 
 router.post("/submitStdAtt", async (req, res) => {
   const { roll_numbers, sessionid } = req.body;
@@ -755,6 +749,43 @@ router.post('/addCompBulk', upload.single('file'), async (req, res) => {
   }
 });
 
+router.post('/addSingleComp', async (req, res) => {
+  try {
+    const authHeader = req.headers["authorization"];
+    if (!authHeader) return res.status(401).json({ success: false, error: 'Authorization token not provided' });
+
+    const token = authHeader.split(" ")[1];
+    const { username, role } = jwt.verify(token, 'qwertyuiop');
+
+    if (role !== "admin") return res.status(403).json({ success: false, error: 'Insufficient permissions' });
+
+    //console.log(req.body.comp);
+    let com = await PlacementCorner.create(req.body.comp)
+    res.json({ success: true, data: { comp: com } });
+  } catch (error) {
+    console.error('Error processing file:', error);
+    res.status(500).json({ success: false, error: 'Internal server error' });
+  }
+});
+
+router.post('/editComp', async (req, res) => {
+  try {
+    const authHeader = req.headers["authorization"];
+    if (!authHeader) return res.status(401).json({ success: false, error: 'Authorization token not provided' });
+
+    const token = authHeader.split(" ")[1];
+    const { username, role } = jwt.verify(token, 'qwertyuiop');
+
+    if (role !== "admin") return res.status(403).json({ success: false, error: 'Wrong role' });
+    let com = await PlacementCorner.findOneAndUpdate({ _id: req.body.comp._id }, req.body.comp, { new: true })
+    //console.log(com);
+    res.json({ success: true, data: { comp: com } });
+  } catch (error) {
+    console.error('Error at editCom', error);
+    res.status(500).json({ success: false, error: 'Internal server error' });
+  }
+});
+
 router.post('/addAttBulk', upload.single('file'), async (req, res) => {
   try {
     // Check if token is provided in the request headers
@@ -819,32 +850,97 @@ router.post('/addAttBulk', upload.single('file'), async (req, res) => {
   }
 });
 
-router.post('/addTests', async (req, res) => {
+router.post('/getAtt/:batch', async (req, res) => {
   try {
     const authHeader = req.headers["authorization"];
-    if (!authHeader) {
-      return res.json({ success: false, error: 'Authorization token not provided' });
-    }
+    if (!authHeader) return res.json({ success: false, error: 'Authorization token not provided' });
     const token = authHeader.split(" ")[1];
+    const { username, role } = jwt.verify(token, 'qwertyuiop');
+    if (role !== "admin") return res.json({ success: false, error: 'wrong role' });
+    let rollno = req.body.rollno;
+    let q = {};
 
+    await Promise.all(rollno.map(async qq => {
+      const att = await Event.find({ students: { $in: [qq] } });
+      q[qq] = att;
+    }));
+
+    res.json({ success: true, data: { att: q } });
+  } catch (error) {
+    console.log(error);
+    return res.json({ success: false, error: 'internal error' })
+  }
+})
+
+router.post('/addSingleTest', async (req, res) => {
+  try {
+    const authHeader = req.headers["authorization"];
+    if (!authHeader) return res.json({ success: false, error: 'Authorization token not provided' });
+    const token = authHeader.split(" ")[1];
     const { username, role } = jwt.verify(token, 'qwertyuiop');
 
-    if (role !== "admin") {
-      return res.json({ success: false, error: 'Insufficient permissions' });
-    }
-    console.log('addTests', req.body.tests);
-    const { tests } = req.body;
+    if (role !== "admin") return res.json({ success: false, error: 'Wrong Role' });
 
-    let q = tests.map(async t => {
-      return await Schedule.create(t)
-    })
+    //console.log('addTests', req.body.test);
+    const { test } = req.body;
 
+    let q = await Schedule.create(test)
     return res.json({ success: true, data: { tests: q } })
-
-
   } catch (error) {
     console.error('Error processing file:', error);
     return res.json({ success: false, error: 'Error processing file' });
+  }
+});
+
+router.post('/addBulkTests', upload.single('file'), async (req, res) => {
+  try {
+    const authHeader = req.headers["authorization"];
+    if (!authHeader) return res.json({ success: false, error: 'Authorization token not provided' });
+
+    const token = authHeader.split(" ")[1];
+    const { username, role } = jwt.verify(token, 'qwertyuiop');
+
+    if (role !== "admin") return res.json({ success: false, error: 'Wrong role' });
+
+    const file = req.file;
+    if (!file) return res.json({ success: false, error: 'No file uploaded' });
+    console.log(file);
+    const jsonData = await new Promise((resolve, reject) => {
+      const results = [];
+      fs.createReadStream(file.path).pipe(csvParser()).on('data', (row) => {
+        console.log(row);
+        results.push({ name: row.name, rollno: row.rollno, att: row.att, aptitude: row.aptitude, coding: row.coding, others: row.others, date: parse(row.date, 'dd-MM-yyyy hh:mm aa', new Date()), batch: row.batch });
+      }).on('end', () => { resolve(results); }).on('error', (error) => { reject(error); });
+    });
+
+    const tests = {};
+    jsonData.forEach(q => {
+      if (tests[q.name]) {
+        tests[q.name].students[q.rollno] = q.att;
+        tests[q.name].marks[q.rollno] = { aptitude: q.aptitude, coding: q.coding, others: q.others };
+      } else {
+        tests[q.name] = {
+          name: q.name, date: new Date(q.date), batch: q.batch,
+          marks: { [q.rollno]: { aptitude: q.aptitude, coding: q.coding, others: q.others } }, students: { [q.rollno]: q.att }
+        };
+      }
+    });
+
+    const tt = await Promise.all(Object.values(tests).map(async q => {
+      let t = await Schedule.findOne({ name: q.name });
+      if (!t) { t = await Schedule.create(q); }
+      else { t = await Schedule.findOneAndUpdate({ name: q.name }, q, { new: true }); }
+      return t;
+    }));
+
+    fs.unlink(file.path, (err) => {
+      if (err) console.error('Error deleting the file:', err);
+    });
+
+    return res.json({ success: true, data: { tests: tt } });
+  } catch (error) {
+    console.log('Error processing file:', error);
+    res.json({ success: false, error: 'Error processing file' });
   }
 });
 
@@ -855,8 +951,39 @@ router.post('/postTest', async (req, res) => {
   if (token) {
     const { username, role } = jwt.verify(token, 'qwertyuiop');
     if (role === "admin") {
-      let q = await Schedule.create({ ...req.body.data, marks: {} })
-      return res.json({ success: true, data: { tests: q } });
+      let test = req.body.test;
+      //console.log(test);
+      let q = await Schedule.findOne({ _id: test.tid })
+      if (!q) return res.status(404).json({ success: false, message: 'Schedule not found' });
+      q.marks[test.rollno].aptitude = test.aptitude;
+      q.marks[test.rollno].coding = test.coding;
+      q.marks[test.rollno].others = test.others;
+      q.students[test.rollno] = test.att;
+      q = await Schedule.findOneAndUpdate({ _id: test.tid }, q, { new: true })
+      return res.json({ success: true, data: { test: q } });
+    } else {
+      return res.json({ success: false, error: 'wrong role' });
+    }
+  } else {
+    return res.json({ success: false, error: 'wrong token' });
+  }
+})
+
+router.post('/deleteStuTestEntry', async (req, res) => {
+  let token;
+  const authHeader = req.headers["authorization"];
+  if (authHeader !== undefined) token = authHeader.split(" ")[1];
+  if (token) {
+    const { username, role } = jwt.verify(token, 'qwertyuiop');
+    if (role === "admin") {
+      let test = req.body.test;
+      //console.log(test);
+      let q = await Schedule.findOne({ _id: test.tid })
+      if (!q) return res.status(404).json({ success: false, message: 'Schedule not found' });
+      delete q.marks[test.rollno];
+      delete q.students[test.rollno];
+      q = await Schedule.findOneAndUpdate({ _id: test.tid }, q, { new: true })
+      return res.json({ success: true, data: { test: q } });
     } else {
       return res.json({ success: false, error: 'wrong role' });
     }
@@ -873,9 +1000,28 @@ router.get('/getTests/:year', async (req, res) => {
   if (token) {
     const { username, role } = jwt.verify(token, 'qwertyuiop');
     if (role === "admin") {
-      const { year } = req.params; console.log(year);
+      const { year } = req.params;
+      //console.log(year);
       let q = await Schedule.find({ batch: year })
       return res.json({ success: true, data: { tests: q } });
+    } else {
+      return res.json({ success: false, error: 'wrong role' });
+    }
+  } else {
+    return res.json({ success: false, error: 'wrong token' });
+  }
+})
+
+router.get('/getTest/:tid', async (req, res) => {
+  let token;
+  const authHeader = req.headers["authorization"];
+  if (authHeader !== undefined) token = authHeader.split(" ")[1];
+
+  if (token) {
+    const { username, role } = jwt.verify(token, 'qwertyuiop');
+    if (role === "admin") {
+      let q = await Schedule.findOne({ _id: req.params.tid })
+      return res.json({ success: true, data: { test: q } });
     } else {
       return res.json({ success: false, error: 'wrong role' });
     }
@@ -925,7 +1071,7 @@ router.post('/postAnn', async (req, res) => {
   if (token) {
     const { username, role } = jwt.verify(token, 'qwertyuiop');
     if (role === "admin") {
-      console.log(req.body);
+      //console.log(req.body);
       let q = await Ann.create({ ...req.body })
       return res.json({ success: true, data: { ann: q } });
     } else {

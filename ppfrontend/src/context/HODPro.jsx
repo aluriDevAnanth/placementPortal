@@ -93,7 +93,7 @@ export function HODPro({ children }) {
   }, [auth, year])
 
   return (
-    <HODCon.Provider value={{ year, mentors, stu, comp, feed, year, setYear }}>{children}</HODCon.Provider>
+    <HODCon.Provider value={{ mentors, stu, comp, feed, year, setYear }}>{children}</HODCon.Provider>
   );
 }
 

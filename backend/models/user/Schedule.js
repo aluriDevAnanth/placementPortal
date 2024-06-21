@@ -5,7 +5,7 @@ const scheduleSchema = new mongoose.Schema(
     name: String,
     date: Date,
     marks: {},
-    students: [String],
+    students: {},
     batch: String
   }, {
   timestamps: true,

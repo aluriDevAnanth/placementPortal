@@ -39,6 +39,7 @@ export function MentorPro({ children }) {
       },
     });
     const res = await response1.json();
+    //console.log(res);
     setStudents(res.data?.studentList)
   }
 
@@ -47,7 +48,6 @@ export function MentorPro({ children }) {
       fetchYears();
     }
   }, [auth])
-
 
   useEffect(() => {
     if (auth && year) {

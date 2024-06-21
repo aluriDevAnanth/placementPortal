@@ -32,12 +32,12 @@ export default function MentorRoute() {
               <Route path='/' element={<ParentHome />} />
               <Route path='/placementpolicy' element={<PlacementPolicy />} />
               <Route path='/attendence' element={<ParentAttendance />} />
-              <Route path='/mypractise' element={<MyPractise />} />
-              <Route path='/alumnirep' element={<AlumniRep />} />
-              <Route path='/placementcorner' element={<ParentPlacementCorner />} />
-              <Route path='/mentordetails' element={<MentorDetails />} />
               <Route path='/settings' element={<ParentSettings />} />
-              <Route path='/testresult' element={<ParentTestResult />} />
+              {/* <Route path='/mentordetails' element={<MentorDetails />} />
+              <Route path='/alumnirep' element={<AlumniRep />} />
+              <Route path='/mypractise' element={<MyPractise />} />
+              <Route path='/placementcorner' element={<ParentPlacementCorner />} /> 
+              <Route path='/testresult' element={<ParentTestResult />} /> */}
               <Route path='/contactus' element={<ParentContactUs />} />
             </Routes>}
           </>

@@ -12,10 +12,12 @@ import { Formik, Form, Field, ErrorMessage } from 'formik';
 import { DataTable } from 'primereact/datatable';
 import { Column } from 'primereact/column';
 const baseURL = process.env.BASE_URL
+import Accordion from 'react-bootstrap/Accordion';
+import Fade from 'react-bootstrap/Fade';
 
 function EventTable({ events, setCurr, handleShow, deleteEvent }) {
-  const formatDate = (date) => format(parseISO(date), "dd-MM-yyyy hh:mm a");
-
+  const formatDate = (date) => format(parseISO(date), "dd-MM-yyyy hh:mm aa");
+  console.log(events);
   const actionBodyTemplate = (rowData) => (
     <div className='p-2'>
       <button onClick={() => { setCurr(rowData); console.log(rowData); handleShow(); }} className="btn btn-info me-2">Edit</button>
@@ -37,7 +39,7 @@ function EventTable({ events, setCurr, handleShow, deleteEvent }) {
     </div>
   );
 
-  return (
+  return (events.length > 0 &&
     <DataTable value={events} reorderableColumns resizableColumns size='small' showGridlines stripedRows paginator rows={10} rowsPerPageOptions={[20, 30, 50, 70, 100]} tableStyle={{ minWidth: '50rem' }} filterDisplay="row" emptyMessage="No Events found." removableSort >
       <Column field="name" header="Name" className="text-center" sortable filter filterMatchMode="contains" showFilterMenu={false} />
       <Column field="des" header="Description" className="text-center" sortable filter filterMatchMode="contains" showFilterMenu={false} />
@@ -53,17 +55,13 @@ function EventTable({ events, setCurr, handleShow, deleteEvent }) {
 
 export default function Events() {
   const { auth } = useContext(AuthCon);
-  const [showSetEvent, setShowSetEvent] = useState(false)
   const [events, setEvents] = useState([]);
   const [curr, setCurr] = useState()
   const [show, setShow] = useState(false);
+  const [open, setOpen] = useState(false);
 
   const handleClose = () => setShow(false);
   const handleShow = () => setShow(true);
-
-  const handleSetEvent = () => {
-    setShowSetEvent(!showSetEvent)
-  }
 
   const EventSchema = Yup.object().shape({
     name: Yup.string().required('Name is required'),
@@ -82,6 +80,7 @@ export default function Events() {
       },
     });
     const res = await response.json();
+    console.log(res);
     setEvents(res.data || []);
   }
 
@@ -166,12 +165,18 @@ export default function Events() {
         <div>
           <Sidebar />
         </div>
-        <div className='ms-3 me-3 container w-100'>
-          <div className='d-flex'>
-            <div>
-              <button onClick={handleSetEvent} className='btn btn-primary'>Add Event</button>
+        <div className='ms-3 me-3 w-100'>
+          <div className='d-flex flex-column'>
+            <div className='mb-3'>
+              <Button onClick={() => setOpen(!open)} aria-controls="example-fade-text" aria-expanded={open}   >
+                Add Event
+              </Button>
             </div>
-            {showSetEvent && <SetEvent fetchEvents={fetchEvents} setShowSetEvent={setShowSetEvent} />}
+            <Fade in={open}>
+              <div id="example-fade-text">
+                <SetEvent setOpen={setOpen} fetchEvents={fetchEvents} />
+              </div>
+            </Fade>
           </div>
         </div>
       </div>
@@ -257,47 +262,6 @@ export default function Events() {
           </Modal.Footer>
         </Modal>}
         <p className='fs-3 fw-bolder'>Current Events</p>
-        {/* <table className='table table-bordered table-striped table-hover'>
-          <thead>
-            <tr className='text-center'>
-              <th>Name</th>
-              <th>Description</th>
-              <th>Start Time</th>
-              <th>End Time</th>
-              <th>Rec</th>
-              <th>Status</th>
-              <th>Students</th>
-              <th>Actions</th>
-            </tr>
-          </thead>
-          <tbody>
-            {events.map((event, index) => (
-              <tr key={index} className='text-center'  >
-                <td>{event.name}</td>
-                <td>{event.des}</td>
-                <td>{format(parseISO(event.startTime), "dd-MM-yyyy hh:mm a")}</td>
-                <td>{format(parseISO(event.endTime), "dd-MM-yyyy hh:mm a")}</td>
-                <td>{event.rec}</td>
-                <td>
-                  {event.isExp && <span className="badge bg-danger text-white">Expired</span>}
-                  {event.isHap && <span className="badge bg-success text-white">Happening Now</span>}
-                </td>
-                <td>{event.students.length}</td>
-                <td className='p-2'>
-                  <button onClick={() => { setCurr(event); console.log(event); handleShow(); }} className="btn btn-info me-2">Edit</button>
-                  {!event.isExp ? (
-                    <Link to={`/currevent/${event._id}`} className="btn btn-secondary me-2">Details</Link>
-                  ) : (
-                    <span className="btn btn-secondary me-2 disabled">Details</span>
-                  )}
-                  <button type="button" onClick={() => deleteEvent(event.name, event._id)} className="btn btn-danger">
-                    <FaRegTrashAlt />
-                  </button>
-                </td>
-              </tr>
-            ))}
-          </tbody>
-        </table> */}
         <EventTable events={events} setCurr={setCurr} handleShow={handleShow} deleteEvent={deleteEvent} />
       </div>
     </div>

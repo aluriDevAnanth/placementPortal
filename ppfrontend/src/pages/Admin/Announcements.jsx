@@ -1,15 +1,11 @@
 import React, { useContext, useState, useEffect, useRef } from 'react';
-import Button from 'react-bootstrap/Button';
 import AuthCon from '../../context/AuthPro';
 import Sidebar from './components/Sidebar';
 import AdminCon from '../../context/AdminPro'
 import { Toast } from 'primereact/toast';
-import { Tooltip } from 'primereact/tooltip';
-import FloatingLabel from 'react-bootstrap/FloatingLabel';
-import Form from 'react-bootstrap/Form';
-import Table from 'react-bootstrap/Table';
 import { format, parseISO } from 'date-fns'
-import Modal from 'react-bootstrap/Modal';
+import { DataTable } from 'primereact/datatable';
+import { Column } from 'primereact/column';
 
 export default function Announcements() {
   const { auth } = useContext(AuthCon);
@@ -27,7 +23,7 @@ export default function Announcements() {
         },
       });
       const res = await response.json();
-      console.log(res);
+      //console.log(res);
       setAnn(res.data.ann)
     } catch (error) {
       console.error('Error:', error);
@@ -47,12 +43,12 @@ export default function Announcements() {
       }, body: JSON.stringify({ des, batch: year.curr }),
     });
     const res = await response.json();
-    console.log(res);
+    //console.log(res);
   }
 
   useEffect(() => {
-    if (year.curr) fetchAnn()
-  }, [year.curr])
+    if (year?.curr) fetchAnn()
+  }, [year?.curr])
 
 
   return (
@@ -62,29 +58,20 @@ export default function Announcements() {
           <Sidebar />
         </div>
         <div className='ms-3 me-3 container w-100'>
-          <p></p>
-          <form className='mb-3' onSubmit={postAnn}>
-            <textarea className='form-control mb-3' name="ann" id="" cols="30" rows="10"></textarea>
-            <button className="btn btn-primary">Submit</button>
-          </form>
-          <div>
-            <Table striped bordered hover>
-              <thead>
-                <tr className='text-center'>
-                  <th>Des</th>
-                  <th>Date</th>
-                </tr>
-              </thead>
-              <tbody>
-                {ann && ann.reverse().map(a => {
-                  return <tr className='text-center'>
-                    <td>{a.des}</td>
-                    <td> {format(parseISO(a.createdAt), 'dd-MM-yyyy hh:mm aa')} </td>
-                  </tr>
-                })}
+          <div className='bg-white p-3 rounded mb-4'>
+            <p className='fs-3 fw-bold'>Add Announcements</p>
+            <form className=' ' onSubmit={postAnn}>
+              <p className='text-dark'> <span className='fw-bold'>NOTE:</span> This for mentor,students,parent only</p>
+              <textarea className='form-control mb-3' name="ann" id="" cols="30" rows="10"></textarea>
+              <button className="btn btn-primary">Submit</button>
+            </form>
+          </div>
 
-              </tbody>
-            </Table>
+          <div>
+            {ann && <DataTable value={ann && ann.reverse()} reorderableColumns resizableColumns size='small' showGridlines stripedRows paginator rows={20} rowsPerPageOptions={[30, 50, 100, 200]} tableStyle={{ minWidth: '50rem' }} filterDisplay="row" emptyMessage="No Students found." removableSort >
+              <Column field="des" header="Des" sortable filter filterMatchMode="contains" className='text-center' showFilterMenu={false}></Column>
+              <Column header="Date" body={(data) => { return format(parseISO(data.createdAt), 'dd-MM-yyyy hh:mm aa'); }} sortable filter filterMatchMode="contains" className='text-center' showFilterMenu={false}></Column>
+            </DataTable>}
           </div>
         </div>
       </div>
