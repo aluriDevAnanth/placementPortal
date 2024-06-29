@@ -6,6 +6,8 @@ import AdminCon from '../../context/AdminPro';
 
 import { DataTable } from 'primereact/datatable';
 import { Column } from 'primereact/column';
+import { Dropdown } from 'primereact/dropdown';
+import { Tag } from 'primereact/tag';
 import { format, parseISO } from 'date-fns';
 import { InputText } from 'primereact/inputtext';
 import { Toast } from 'primereact/toast';
@@ -19,16 +21,13 @@ const StuTable = ({ test, stu, fetchEvent }) => {
   const [data, setData] = useState()
 
   useEffect(() => {
-    const dataq = Object.keys(test.marks).map(r => {
+    const dataq = Object.keys(test.students).map(r => {
       let s = stu[r.trim()];
       return {
-        rollno: r,
-        tid: test._id,
-        name: s && s.name,
-        att: test.students[r],
-        aptitude: test.marks[r].aptitude,
-        coding: test.marks[r].coding,
-        others: test.marks[r].others
+        rollno: r, tid: test._id, name: s && s.name, att: test.students[r],
+        aptitude: test.marks[r] && test.marks[r].aptitude ? test.marks[r].aptitude : '',
+        coding: test.marks[r] && test.marks[r].coding ? test.marks[r].coding : '',
+        others: test.marks[r] && test.marks[r].others ? test.marks[r].others : ''
       };
     });
     setData(dataq)
@@ -37,8 +36,7 @@ const StuTable = ({ test, stu, fetchEvent }) => {
 
   const onRowEditComplete = async (e) => {
     let _products = [...data];
-    let { newData, index } = e;
-    _products[index] = { ...newData };
+    let { newData } = e;
 
     const response = await fetch(`${baseURL}/admin/postTest`, {
       method: 'POST',
@@ -51,9 +49,10 @@ const StuTable = ({ test, stu, fetchEvent }) => {
 
     const res = await response.json();
     if (res.success) {
-      toast.current.show({ severity: 'success', summary: 'Student Info updated', detail: newData.name, life: 6000 }); setData(_products);
+      toast.current.show({ severity: 'success', summary: 'Student Info updated', detail: newData.name, life: 6000 });
+      setData(_products);
     }
-
+    fetchEvent()
   };
 
   const allowEdit = (rowData) => {
@@ -84,21 +83,30 @@ const StuTable = ({ test, stu, fetchEvent }) => {
     }
   }
 
+  const getSeverity = (value) => {
+    switch (value) { case 'present': return 'success'; case 'absent': return 'danger'; default: return null; }
+  };
+
+  const [statuses] = useState(['present', 'absent']);
+
+  const statusEditor = (options) => {
+    return (<Dropdown value={options.value} options={statuses} onChange={(e) => options.editorCallback(e.value)} placeholder="Select a Status" itemTemplate={(option) => { return <Tag value={option} severity={getSeverity(option)} ></Tag>; }} />);
+  };
+
+
   return (
     <>
       <Toast ref={toast} />
       <DataTable value={data} stripedRows reorderableColumns resizableColumns size='small' showGridlines paginator rows={20} rowsPerPageOptions={[30, 50, 100, 200]} filterDisplay="row" emptyMessage="No Students found." removableSort sortField="name" sortOrder={1} onRowEditComplete={onRowEditComplete} editMode="row">
         <Column rowEditor={allowEdit} bodyStyle={{ textAlign: 'center' }}></Column>
         <Column sortable filter filterMatchMode="contains" className='text-center' field="name" header="Name" />
-        <Column editor={(options) => textEditor(options)} sortable filter filterMatchMode="contains" className='text-center' field="att" header="Att" />
+        <Column editor={(options) => statusEditor(options)} sortable filter filterMatchMode="contains" className='text-center' field="att" header="Att" body={(rowData) => {
+          return rowData.att != '' ? <Tag value={rowData.att} severity={getSeverity(rowData.att)}></Tag> : <></>
+        }} />
         <Column editor={(options) => textEditor(options)} sortable filter filterMatchMode="contains" className='text-center' field="aptitude" header="Aptitude" />
         <Column editor={(options) => textEditor(options)} sortable filter filterMatchMode="contains" className='text-center' field="coding" header="Coding" />
         <Column editor={(options) => textEditor(options)} sortable filter filterMatchMode="contains" className='text-center' field="others" header="Others" />
-        <Column editor={(options) => textEditor(options)} sortable filter filterMatchMode="contains" className='text-center' field="others" header="Others" body={(data) => {
-          return <div>
-            <button className='btn btn-outline-danger' onClick={(e) => { deleteStuTestEntry(e, data) }} ><i className="bi bi-trash"></i></button>
-          </div>
-        }} />
+        <Column className='text-center' field="others" header="Options" body={(data) => { return <div> <button className='btn btn-outline-danger' onClick={(e) => { deleteStuTestEntry(e, data) }} ><i className="bi bi-trash"></i></button>  </div> }} />
       </DataTable>
     </>
 

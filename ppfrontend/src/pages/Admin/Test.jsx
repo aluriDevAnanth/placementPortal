@@ -18,7 +18,7 @@ import Accordion from 'react-bootstrap/Accordion';
 
 const baseURL = process.env.BASE_URL
 
-function AddTestForm({ tests, fetchTests }) {
+function AddTestForm({ year, tests, fetchTests }) {
   const { auth } = useContext(AuthCon);
 
   let schema = {
@@ -26,7 +26,7 @@ function AddTestForm({ tests, fetchTests }) {
     "type": "object",
     "properties": {
       "name": {
-        "type": "string",
+        "type": "string"
       },
       "date": {
         "type": "string",
@@ -54,21 +54,50 @@ function AddTestForm({ tests, fetchTests }) {
           "required": ["aptitude", "coding", "others", "att"]
         }
       },
-      "batch": {
+      "fileUpload": {
         "type": "string",
-        "pattern": "^\\d{4}$"
+        "format": "data-url"
       }
     },
-    "required": ["name", "date", "marks", "batch"]
+    "required": ["name", "date"]
   }
 
+  async function addSingleTest({ formData }, e) {
+    formData.students = {};
+    formData.batch = year.curr;
 
-  async function addComp({ formData }, e) {
-    formData.students = {}
-    Object.keys(formData.marks).map(r => {
-      formData.students[r] = formData.marks[r].att
-      delete formData.marks[r].att;
-    })
+    if (formData.marks) {
+      Object.keys(formData.marks).forEach(r => {
+        formData.students[r] = formData.marks[r].att;
+        delete formData.marks[r].att;
+      });
+    } else {
+      formData.marks = {};
+    }
+
+    try {
+      if (formData.fileUpload) {
+        const base64Data = formData.fileUpload.split(',')[1]; const binaryString = atob(base64Data);
+        const bytes = new Uint8Array(binaryString.length);
+        for (let i = 0; i < binaryString.length; i++)  bytes[i] = binaryString.charCodeAt(i);
+        const blob = new Blob([bytes], { type: 'text/csv' });
+        formData.students = await new Promise((resolve, reject) => {
+          const reader = new FileReader();
+          reader.onload = (event) => {
+            const text = event.target.result; const rows = text.split('\n');
+            const students = rows.map((row) => row.split(',')[0]).filter((student) => student !== 'rollno' && student.trim() !== '');
+            let stu = {}; students.forEach(s => { stu[s] = ''; });
+            resolve(stu);
+          };
+          reader.onerror = (error) => reject(error);
+          reader.readAsText(blob);
+        });
+        delete formData.fileUpload;
+      }
+    } catch (error) {
+      console.error('Error parsing student list file: ', error);
+    }
+
     console.log(formData);
     const response = await fetch(`${baseURL}/admin/addSingleTest`, {
       method: 'POST',
@@ -78,17 +107,18 @@ function AddTestForm({ tests, fetchTests }) {
       },
       body: JSON.stringify({ test: formData }),
     });
-    const res = await response.json()
+    const res = await response.json();
     console.log(res);
     fetchTests();
   }
+
 
   return <>
     <Accordion >
       <Accordion.Item eventKey="0">
         <Accordion.Header>Add Tests  </Accordion.Header>
         <Accordion.Body>
-          <Form schema={schema} validator={validator} onSubmit={addComp} />
+          <Form schema={schema} validator={validator} onSubmit={addSingleTest} />
         </Accordion.Body>
       </Accordion.Item>
     </Accordion>
@@ -98,8 +128,8 @@ function AddTestForm({ tests, fetchTests }) {
 export default function Test() {
   const { auth } = useContext(AuthCon);
   const [file, setFile] = useState(null);
-  const [sfile, setSFile] = useState(null);
   const [bfile, setBFile] = useState(null);
+  const [sfile, setSFile] = useState(null);
   const [tests, setTests] = useState();
   const { stu, year, setStu } = useContext(AdminCon)
   const toast = useRef(null);
@@ -315,7 +345,7 @@ export default function Test() {
           <p className='fs-1 fw-bolder'>Test Management Portal</p>
           {tests && <div className='mb-3 border  shadow p-3 bg-white rounded-4'>
             <p className='fs-4 fw-bold'>Add Tests</p>
-            <AddTestForm tests={tests} fetchTests={fetchTests} />
+            <AddTestForm year={year} tests={tests} fetchTests={fetchTests} />
           </div>}
 
           <div className='mb-3 border  shadow p-3 bg-white rounded-4'>
@@ -333,15 +363,6 @@ export default function Test() {
             </BForm>
             <p className='fw-bold m-0' > <span className='text-danger'>use google sheets to prepare excel |</span>  <span className=' text-dark fw-bold m-0' > the format of date is dd-MM-yyyy hh:mm aa(14-06-2024 04:51 AM) | </span> <span className='text-danger fw-bold m-0' > Dont use any formulas to make excel </span></p>
           </div>
-
-          <div className='mb-3 border  shadow p-3 bg-white rounded-4'>
-            <DataTable value={tests} paginator rows={10} className="p-datatable-striped" rowsPerPageOptions={[25, 50]} showGridlines stripedRows filterDisplay="row" emptyMessage="No Test found." removableSort >
-              <Column filter showFilterMenu={false} filterMatchMode="contains" field="name" header="Name" sortable className="text-center" />
-              <Column filter showFilterMenu={false} filterMatchMode="contains" field="date" header="Date" sortable className="text-center" body={(rowData) => format(parseISO(rowData.date), 'dd-MM-yyyy hh:mm a')} />
-              <Column filter showFilterMenu={false} filterMatchMode="contains" field="Object.keys(students).length" header="Number of students" sortable className="text-center" body={(data) => { return <p>{Object.keys(data.students).length}</p> }} />
-              <Column body={actionTemplate} header="Options" className="text-center" />
-            </DataTable>
-          </div>
           <div>
             <Toast ref={toast} />
           </div>
@@ -350,6 +371,14 @@ export default function Test() {
       {stu && <div className='mt-3 container-fluid'>
         <Toast ref={toast} />
         <Tooltip target=".export-buttons>button" position="bottom" />
+      </div>}
+      {tests && <div className='mb-3 border  shadow p-3 bg-white rounded-4 mx-4 '>
+        <DataTable value={tests} paginator rows={10} className="p-datatable-striped" rowsPerPageOptions={[25, 50]} showGridlines stripedRows filterDisplay="row" emptyMessage="No Test found." removableSort >
+          <Column filter showFilterMenu={false} filterMatchMode="contains" field="name" header="Name" sortable className="text-center" />
+          <Column filter showFilterMenu={false} filterMatchMode="contains" field="date" header="Date" sortable className="text-center" body={(rowData) => format(parseISO(rowData.date), 'dd-MM-yyyy hh:mm a')} />
+          <Column filter showFilterMenu={false} filterMatchMode="contains" field="Object.keys(students).length" header="Number of students" sortable className="text-center" body={(data) => { return <p>{Object.keys(data.students).length}</p> }} />
+          <Column body={actionTemplate} header="Options" className="text-center" />
+        </DataTable>
       </div>}
       <Modal size="lg" show={curr.show} onHide={() => setCurr({ show: false, data: {} })}    >
         <Modal.Header closeButton>

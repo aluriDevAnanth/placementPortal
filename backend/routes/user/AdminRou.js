@@ -863,7 +863,7 @@ router.post('/addSingleTest', async (req, res) => {
 
     if (role !== "admin") return res.json({ success: false, error: 'Wrong Role' });
 
-    //console.log('addTests', req.body.test);
+    console.log('addTests', req.body.test);
     const { test } = req.body;
 
     let q = await Schedule.create(test)
@@ -937,6 +937,7 @@ router.post('/postTest', async (req, res) => {
       //console.log(test);
       let q = await Schedule.findOne({ _id: test.tid })
       if (!q) return res.status(404).json({ success: false, message: 'Schedule not found' });
+      q.marks[test.rollno] = {}
       q.marks[test.rollno].aptitude = test.aptitude;
       q.marks[test.rollno].coding = test.coding;
       q.marks[test.rollno].others = test.others;

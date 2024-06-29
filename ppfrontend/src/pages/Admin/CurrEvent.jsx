@@ -2,11 +2,30 @@ import React, { useContext, useEffect, useState } from "react";
 import Sidebar from "./components/Sidebar";
 import { useParams } from "react-router-dom";
 import AuthCon from "../../context/AuthPro";
+import AdminCon from "../../context/AdminPro";
 import QRCode from "react-qr-code";
+import { DataTable } from 'primereact/datatable';
+import { Column } from 'primereact/column';
+
+const StuTable = ({ event, stu }) => {
+  let reqArr = event.students.map(rollno => { return { name: stu?.[rollno]?.name, rollno, email: stu?.[rollno]?.email } })
+  return (
+    <div>
+      {event && (
+        <DataTable className="text-center" value={reqArr} reorderableColumns resizableColumns size='small' showGridlines stripedRows paginator rows={20} rowsPerPageOptions={[30, 50, 100, 200]} tableStyle={{ minWidth: '50rem' }} filterDisplay="row" emptyMessage="No Students found." removableSort sortField="name" sortOrder={1}  >
+          <Column className="text-center" sortable filter filterMatchMode="contains" showFilterMenu={false} field="name" header="Name" />
+          <Column className="text-center" sortable filter filterMatchMode="contains" showFilterMenu={false} field="rollno" header="Rollno" />
+          <Column className="text-center" sortable filter filterMatchMode="contains" showFilterMenu={false} field="email" header="Email" />
+        </DataTable>
+      )}
+    </div>
+  );
+};
 
 export default function CurrEvent() {
   const { eid } = useParams();
   const { auth } = useContext(AuthCon);
+  const { stu } = useContext(AdminCon);
   const [event, setEvent] = useState();
   const [qrValue, setQRValue] = useState("");
   const [tokens, setTokens] = useState([]);
@@ -87,76 +106,28 @@ export default function CurrEvent() {
           <div className="d-flex flex-column">
             <h2>Name: {event?.name}</h2>
             <p>Description: {event?.des}</p>
-            <p>
-              Start Time:{" "}
-              {event ? new Date(event.startTime).toLocaleString() : ""}
-            </p>
-            <p>
-              End Time: {event ? new Date(event.endTime).toLocaleString() : ""}
-            </p>
+            <p> Start Time:{" "}  {event ? new Date(event.startTime).toLocaleString() : ""}   </p>
+            <p>  End Time: {event ? new Date(event.endTime).toLocaleString() : ""}  </p>
             <p>Recurrence: {event?.rec}</p>
-            <h3>Students:</h3>
           </div>
           {qrValue && sess ? (
             <div className="ms-5">
-              <QRCode
-                size={1000}
-                style={{
-                  height: `${qrSize}px`,
-                  maxWidth: "100%",
-                  width: "100%",
-                }}
-                value={qrValue}
-                viewBox={`0 0 256 256`}
-                onClick={() => setQrSize(qrSize === 300 ? 650 : 300)}
-              />
+              <QRCode size={1000} style={{ height: `${qrSize}px`, maxWidth: "100%", width: "100%", }} value={qrValue} viewBox={`0 0 256 256`} onClick={() => setQrSize(qrSize === 300 ? 650 : 300)} />
               <div className="my-3 mx-auto">
-                <button
-                  onClick={() => {
-                    setSess(false);
-                  }}
-                  className="btn btn-danger "
-                >
-                  End Session
-                </button>
+                <button onClick={() => { setSess(false); }} className="btn btn-danger " > End Session </button>
               </div>
             </div>
           ) : (
             <div className="my-auto mx-auto">
-              <button
-                onClick={() => {
-                  setSess(true);
-                }}
-                className="btn btn-primary "
-              >
-                Start Session
-              </button>
+              <button onClick={() => { setSess(true); }} className="btn btn-primary "  >  Start Session  </button>
             </div>
           )}
         </div>
       </div>
       <div className="container-fluid mt-3">
         <div>
-          {event && (
-            <table className="table table-hover table-bordered table-striped">
-              <thead>
-                <tr>
-                  <th>Rollno</th>
-                  <th>Name</th>
-                  <th>Email</th>
-                </tr>
-              </thead>
-              <tbody>
-                {event.students.map((student, i) => (
-                  <tr key={i}>
-                    <th>{student}</th>
-                    <th>{student}</th>
-                    <th>{student}</th>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          )}
+          <h1>Students:</h1>
+          {event && stu && (<StuTable event={event} stu={stu} />)}
         </div>
       </div>
     </>

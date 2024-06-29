@@ -66,14 +66,13 @@ export default function Announcements() {
               <button className="btn btn-primary">Submit</button>
             </form>
           </div>
-
-          <div>
-            {ann && <DataTable value={ann && ann.reverse()} reorderableColumns resizableColumns size='small' showGridlines stripedRows paginator rows={20} rowsPerPageOptions={[30, 50, 100, 200]} tableStyle={{ minWidth: '50rem' }} filterDisplay="row" emptyMessage="No Students found." removableSort >
-              <Column field="des" header="Des" sortable filter filterMatchMode="contains" className='text-center' showFilterMenu={false}></Column>
-              <Column header="Date" body={(data) => { return format(parseISO(data.createdAt), 'dd-MM-yyyy hh:mm aa'); }} sortable filter filterMatchMode="contains" className='text-center' showFilterMenu={false}></Column>
-            </DataTable>}
-          </div>
         </div>
+      </div>
+      <div className='mx-4'>
+        {ann && <DataTable value={ann && ann.reverse()} reorderableColumns resizableColumns size='small' showGridlines stripedRows paginator rows={20} rowsPerPageOptions={[30, 50, 100, 200]} tableStyle={{ minWidth: '50rem' }} filterDisplay="row" emptyMessage="No Students found." removableSort >
+          <Column field="des" header="Des" sortable filter filterMatchMode="contains" className='text-center' showFilterMenu={false}></Column>
+          <Column header="Date" body={(data) => { return format(parseISO(data.createdAt), 'dd-MM-yyyy hh:mm aa'); }} sortable filter filterMatchMode="contains" className='text-center' showFilterMenu={false}></Column>
+        </DataTable>}
       </div>
     </div>
   );
