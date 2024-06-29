@@ -14,12 +14,11 @@ const { JSDOM } = jsdom;
 const LogDet = require('../../models/user/LogDet');
 const Student = require('../../models/user/Student');
 const Parent = require('../../models/user/Parent');
-const Mentor = require('../../models/user/Mentor');
-const Att = require('../../models/user/Att')
-const Event = require('../../models/user/Event')
-const Schedule = require('../../models/user/Schedule')
-const PlacementCompany = require('../../models/user/PlacementCompany')
-const PlacementCorner = require('../../models/user/PlacementCorner')
+const Mentor = require('../../models/mentor/Mentor');
+const Att = require('../../models/admin/Att')
+const Event = require('../../models/admin/Event')
+const Schedule = require('../../models/admin/Schedule')
+const PlacementCorner = require('../../models/admin/PlacementCorner')
 const MentorReview = require('../../models/mentor/MentorReview')
 const StudentFeedback = require('../../models/user/StudentFeedback')
 const Ann = require('../../models/admin/Ann');
@@ -287,17 +286,11 @@ router.get('/getCom/:year', async (req, res) => {
     //console.log(role);
     if (role === "student" || role === "parent" || role === "mentor") {
       //console.log(req.params.year)
-      const com = await PlacementCompany.find({ batch: req.params.year })
-      res.json({
-        success: true,
-        data: com
-      });
+      const com = await PlacementCorner.find({ batch: req.params.year })
+      res.json({ success: true, data: com });
     }
   } else {
-    res.json({
-      success: false,
-      error: 'error'
-    });
+    res.json({ success: false, error: 'error' });
   }
 })
 

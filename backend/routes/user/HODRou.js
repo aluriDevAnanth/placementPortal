@@ -9,10 +9,9 @@ const { format } = require('date-fns')
 const LogDet = require('../../models/user/LogDet');
 const Student = require('../../models/user/Student');
 const Parent = require('../../models/user/Parent');
-const Mentor = require('../../models/user/Mentor');
-const Att = require('../../models/user/Att')
-const Schedule = require('../../models/user/Schedule')
-const PlacementCompany = require('../../models/user/PlacementCompany')
+const Mentor = require('../../models/mentor/Mentor');
+const Att = require('../../models/admin/Att')
+const Schedule = require('../../models/admin/Schedule')
 const MentorReview = require('../../models/mentor/MentorReview')
 
 //use

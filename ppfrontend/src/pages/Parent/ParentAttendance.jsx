@@ -1,22 +1,98 @@
 import React, { useEffect, useState, useContext } from "react";
 import Sidebar from "./components/ParentSidebar";
 import AuthCon from "../../context/AuthPro";
-import Table from 'react-bootstrap/Table';
+import { parseISO, format } from 'date-fns'
+import { DataTable } from 'primereact/datatable';
+import { Column } from 'primereact/column';
 
-export default function StudentAtt() {
+const EventAttTable = ({ data }) => {
+  console.log(data);
+  return (
+    <div className="p-3">
+      <h5>Attendance for {data.name}</h5>
+      <DataTable value={data.attendance} reorderableColumns resizableColumns size='small' showGridlines stripedRows paginator rows={10} rowsPerPageOptions={[20, 50,]} tableStyle={{ minWidth: '50rem' }} filterDisplay="row" emptyMessage="No Dates found." removableSort sortField="per" sortOrder={-1}>
+        <Column field="date" header="Date" sortable filter filterMatchMode="contains" className='text-center' showFilterMenu={false}></Column>
+        <Column field="att" header="Attendance" sortable filter filterMatchMode="contains" className='text-center' showFilterMenu={false}></Column>
+      </DataTable>
+    </div>
+  );
+};
+
+function AttTable({ eventAtt, user }) {
+  const [expandedRows, setExpandedRows] = useState(null);
+  let processedData = eventAtt.map(e => {
+    let totalDates = Object.keys(e.attendance).length;
+    let presentCount = 0;
+    let attendanceDetails = [];
+
+    Object.keys(e.attendance).forEach(date => {
+      let isPresent = e.attendance[date].includes(user.rollno);
+      if (isPresent) presentCount++;
+
+      attendanceDetails.push({
+        att: isPresent ? 'present' : 'absent', date
+      });
+    });
+
+    return {
+      ...e,
+      startTime: format(parseISO(e.startTime), 'dd-MM-yyyy hh:mm aa'),
+      endTime: format(parseISO(e.endTime), 'dd-MM-yyyy hh:mm aa'),
+      per: `${((presentCount / totalDates) * 100).toFixed(2)}%`,
+      attendance: attendanceDetails
+    };
+  });
+
+  const rowExpansionTemplate = (data) => {
+    return <EventAttTable data={data} />;
+  };
+
+  return (
+    <div>
+      <DataTable value={processedData} rowExpansionTemplate={rowExpansionTemplate} expandedRows={expandedRows} onRowToggle={(e) => setExpandedRows(e.data)} reorderableColumns resizableColumns size='small' showGridlines stripedRows paginator rows={10} rowsPerPageOptions={[25, 50]} tableStyle={{ minWidth: '50rem' }} filterDisplay="row" emptyMessage="No Events found." removableSort sortField="per" sortOrder={-1}>
+        <Column expander style={{ width: '3em' }} />
+        <Column filter filterMatchMode="contains" className='text-center' showFilterMenu={false} sortable field="name" header="Name" />
+        <Column filter filterMatchMode="contains" className='text-center' showFilterMenu={false} sortable field="des" header="Description" />
+        <Column filter filterMatchMode="contains" className='text-center' showFilterMenu={false} sortable field="startTime" header="Start Time" />
+        <Column filter filterMatchMode="contains" className='text-center' showFilterMenu={false} sortable field="endTime" header="End Time" />
+        <Column filter filterMatchMode="contains" className='text-center' showFilterMenu={false} sortable field="rec" header="Recurrence" />
+        <Column filter filterMatchMode="contains" className='text-center' showFilterMenu={false} sortable field="per" header="Attendance Percentage" />
+      </DataTable>
+    </div>
+  );
+}
+
+export default function ParentAttendance() {
   const { auth, user } = useContext(AuthCon);
-  const [att, setAtt] = useState();
-  const [totalAtt, setTotalAtt] = useState();
-  const [show, setShow] = useState(false);
+  const [totalEventAtt, setTotalEventAtt] = useState(0);
+  const [eventAtt, setEventAtt] = useState([]);
+  const [error, setError] = useState(null);
   const baseURL = process.env.BASE_URL
 
   useEffect(() => {
-    fetchAtt();
+    if (eventAtt && eventAtt.length > 0) {
+      let tot = 0;
+      let presentCount = 0;
+      eventAtt.forEach(event => {
+        tot = tot + Object.keys(event.attendance).length;
+        Object.keys(event.attendance).forEach(date => {
+          if (event.attendance[date].includes(user.rollno)) presentCount++;
+        });
+      });
+
+      setTotalEventAtt(presentCount / tot);
+    }
+  }, [eventAtt, user.rollno]);
+
+  useEffect(() => {
+    if (user.rollno) {
+      fetchEventAtt();
+    }
   }, [user.rollno]);
 
-  const fetchAtt = async () => {
+  const fetchEventAtt = async () => {
     try {
-      const response = await fetch(`${baseURL}/student/getAtt/${user.rollno}`, {
+      const response = await fetch(`${baseURL}/student/getEventAtt/${user.rollno}`, {
         method: "GET",
         headers: {
           "Content-Type": "application/json",
@@ -24,89 +100,29 @@ export default function StudentAtt() {
         },
       });
       const res = await response.json();
-      setAtt(res.data.att);
-      //console.log(res.data.att);
+      setEventAtt(res.data.att);
     } catch (error) {
+      setError('Error fetching event attendance');
       console.error('Error fetching attendance:', error);
     }
   };
 
-  const calculateOverallAttendancePercentage = (attendanceData) => {
-    let totalDays = 0;
-    let presentDays = 0;
+  if (error) {
+    return <div>{error}</div>;
+  }
 
-    totalDays += attendanceData.length;
-    presentDays = attendanceData.filter(item => item.attendence === 'present').length;
-
-    return totalDays > 0 ? (presentDays / totalDays) * 100 : 0;
-  };
-
-  useEffect(() => {
-    if (att) { const q = calculateOverallAttendancePercentage(att).toFixed(2); setTotalAtt(q); /* console.log(q); */ }
-  }, [att])
-
-  useEffect(() => {
-    if (att && show) {
-      var table = $('#exatt').DataTable({
-        orderCellsTop: true, destroy: true,
-        initComplete: function () {
-          $('#exatt thead tr:eq(1) th.text_search').each(function () {
-            var title = $(this).text();
-            $(this).html(`<input type="text" placeholder="Search ${title}" class="form-control column_search" />`);
-          });
-
-        }
-      });
-      $('#exatt thead').on('keyup', ".column_search", function () {
-        table
-          .column($(this).parent().index())
-          .search(this.value)
-          .draw();
-      });
-    }
-  }, [att, show]);
-
-  let allAtt;
   return (
-    user !== null && (
+    user && (
       <div className="bodyBG">
         <div className="container-fluid">
           <div className="d-flex">
-            <div className="">
+            <div>
               <Sidebar />
             </div>
-            <div className="flex-fill ms-3 border-primary me-3   rounded-4 p-3">
-              {att && <div className="mb-3">
-                {att && <p className={`${totalAtt >= 80 ? 'text-success' : 'text-danger'} fs-4 fw-bold`}>Overall Attendance: {totalAtt}%</p>}
-              </div>}
-              <div className="mb-3">
-                <button onClick={() => { setShow(!show) }} className="btn btn-primary">Toggle to all attendance</button>
-              </div>
-              {att && <div hidden={!show}>
-                <Table id='exatt' striped bordered hover>
-                  <thead>
-                    <tr className="text-center">
-                      <th>Daily</th>
-                      <th>Date</th>
-                      <th>Attendance Status</th>
-                    </tr>
-                    <tr className="text-center">
-                      <th className="text_search">Daily</th>
-                      <th className="text_search">Date</th>
-                      <th className="text_search">Attendance Status</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {att.reverse().map((day, index) => (
-                      <tr className="text-center" key={index}>
-                        <td>{index + 1}</td>
-                        <td> {day.date} </td>
-                        <td className={`${day.attendence === 'present' ? 'text-success' : "text-danger"} fw-bolder`}>{day.attendence}</td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </Table>
-              </div>}
+            <div className="flex-fill ms-3 border-primary me-3 rounded-4 p-3">
+              <p className="fs-5">All over total event attendence: {isNaN(totalEventAtt) ? '0' : ((totalEventAtt) * 100).toFixed(2)}
+                %</p>
+              <AttTable eventAtt={eventAtt} user={user} />
             </div>
           </div>
         </div>

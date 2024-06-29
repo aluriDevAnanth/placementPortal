@@ -170,6 +170,9 @@ function CompanyDetails({ comp, students, year, fetchComp }) {
             <div className="flex-fill rounded-3 ms-3 border-primary me-3">
               <Toast ref={toast} />
               <DataTable size={'small'} value={comp} className="p-datatable-striped p-datatable-hover" showGridlines stripedRows paginator rows={10} rowsPerPageOptions={[25, 50]} sortField="name" sortOrder={1} removableSort filterDisplay="row" emptyMessage="No Company found." expandedRows={expandedRows} onRowToggle={(e) => setExpandedRows(e.data)} onRowExpand={onRowExpand} onRowCollapse={onRowCollapse} rowExpansionTemplate={rowExpansionTemplate}>
+                <Column field="options" header="" body={(data, props) => {
+                  return <div> <div>  <button onClick={(event) => { setModalData(data); }} style={{ backgroundColor: "#696747", color: "white" }} className="btn" ><i className="bi bi-pencil-square"></i></button> </div>  </div>
+                }} />
                 <Column expander={allowExpansion} style={{ width: '2rem' }} />
                 <Column field="name" header="Name" filter sortable showFilterMenu={false} filterMatchMode="contains" />
                 <Column field="dateOfVisit" header="Date Of Visit" filter sortable showFilterMenu={false} filterMatchMode="contains" body={(data, props) => { return <p> {format(parseISO(data.dateOfVisit), 'dd-MM-yyyy')}</p> }} />
@@ -181,15 +184,12 @@ function CompanyDetails({ comp, students, year, fetchComp }) {
                   body={(data, props) => { return <p> {data.appliedStudents.length}</p> }} />
                 <Column field="shortlisted" header="Short Listed" filter sortable showFilterMenu={false} filterMatchMode="contains"
                   body={(data, props) => { return <p> {data.shortlistedStudents.length}</p> }} />
-                {["onlineTest", "GD", "interview1", "HR", "otherStages"].map((col, i) => (
+                {["onlineTest", "GD", "interview1", "interview2", "interview3", "HR", "otherStages"].map((col, i) => (
                   <Column key={col} field={col} header={col} filter sortable showFilterMenu={false} filterMatchMode="contains" body={(data, props) => {
                     if (!data.stages || !data.stages[col]) return <p>not applicable</p>;
                     return (<p>  {data.stages[col] !== 'not applicable' ? Object.values(data.stages[col]).filter(status => status === 'cleared').length : data.stages[col]} </p>);
                   }} />))}
                 <Column field="placedStudents" header="Final selected" filter sortable showFilterMenu={false} filterMatchMode="contains" body={(data, props) => { return <p> {data.placedStudents ? data.placedStudents.length : '-'}</p> }} />
-                <Column field="options" header="" body={(data, props) => {
-                  return <div> <div>  <button onClick={(event) => { setModalData(data); }} style={{ backgroundColor: "#696747", color: "white" }} className="btn" >   <i className="bi bi-pencil-square"></i>  </button>   </div>  </div>
-                }} />
               </DataTable>
             </div>
           </div>

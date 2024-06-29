@@ -20,9 +20,11 @@ export default function Students() {
   const [file, setFile] = useState(null);
   const [jsonData, setJsonData] = useState();
   const [show, setShow] = useState();
+  const [show1, setShow1] = useState();
   const { stu, year, setStu, fetchStudents } = useContext(AdminCon)
   const toast = useRef(null);
   const [visibleColumns, setVisibleColumns] = useState([]);
+  const [stuLogDet, setStuLogDet] = useState();
   const dt = useRef(null);
   const baseURL = process.env.BASE_URL
 
@@ -137,10 +139,6 @@ export default function Students() {
     }
   };
 
-  const textEditor = (options) => {
-    return <InputText type="text" value={options.value} onChange={(e) => options.editorCallback(e.target.value)} />;
-  };
-
   const editStu = async ({ formData }, e) => {
     e.preventDefault();
     console.log(formData);
@@ -157,7 +155,6 @@ export default function Students() {
     if (res.success) toast.current.show({ severity: 'success', summary: 'Student Info updated', detail: formData.name, life: 3000 });
     fetchStudents();
     setShow(undefined)
-    //console.log(res);
   };
 
   const onColumnToggle = (event) => {
@@ -190,6 +187,64 @@ export default function Students() {
     const res = await response.json()
     //console.log(res);
     fetchStudents();
+  }
+
+  const headerElement = (
+    <div className="d-flex justify-content-between ">
+      <span className="font-bold white-space-nowrap">Edit Student</span>
+      <button onClick={e => { let q = stuLogDet.find(l => l.username == show.rollno); console.log(q); setShow1(q) }} className="btn btn-primary font-bold white-space-nowrap">Edit Student Login</button>
+    </div>
+  );
+
+  async function fetchStuLogDet() {
+    const response = await fetch(`${baseURL}/admin/getStuLogDet`, {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${auth}`,
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({ stu: Object.keys(stu) }),
+    });
+    const res = await response.json()
+    setStuLogDet(res.data.stu)
+  }
+
+  useEffect(() => {
+    if (stu) fetchStuLogDet()
+  }, [stu])
+
+  const logschema = {
+    "$schema": "http://json-schema.org/draft-07/schema#",
+    "type": "object",
+    "properties": {
+      "username": {
+        "type": "string",
+        "pattern": "^[A-Za-z0-9_]+$"
+      },
+      "password": {
+        "type": "string",
+        "pattern": "^[a-f\\d]{32}$"
+      },
+      "deviceInfo": {
+        "type": "string"
+      },
+    },
+    "required": ["username", "password"]
+  }
+
+  async function editStudentLog({ formData }, e) {
+    if (formData.deviceInfo === undefined) formData.deviceInfo = ''
+    console.log(formData);
+    const response = await fetch(`${baseURL}/admin/editStuLogDet`, {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${auth}`,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ stu: formData }),
+    });
+
+    const res = await response.json();
   }
 
   return (
@@ -227,13 +282,22 @@ export default function Students() {
       {stu && <div className='mt-3 container-fluid mb-3'>
         <p className='fs-3 fw-bold'>Batchs</p>
         <Toast ref={toast} />
-        <Dialog className='d-flex container-fluid' closeOnEscape={true} header="Edit Student" visible={show} maximizable style={{ width: '70vw' }} onHide={() => { setShow(false); }}>
+        <Dialog className='d-flex container-fluid' closeOnEscape={true} header={headerElement} visible={show} maximizable style={{ width: '70vw' }} onHide={() => { setShow(false); }}>
           <Form className='row' schema={schema} validator={validator} uiSchema={uiSchema} onSubmit={editStu} noValidate={true} formData={show}>
             <div>
               <button className='mt-3 btn btn-primary' type='submit'>Submit</button>
             </div>
           </Form>
         </Dialog>
+
+        <Dialog className='d-flex container-fluid' closeOnEscape={true} header="Edit Student Login Data" visible={show1} maximizable style={{ width: '70vw' }} onHide={() => { setShow1(undefined); }}>
+          <Form className='row' schema={logschema} validator={validator} uiSchema={uiSchema} onSubmit={editStudentLog} noValidate={true} formData={show1}>
+            <div>
+              <button className='mt-3 btn btn-primary' type='submit'>Submit</button>
+            </div>
+          </Form>
+        </Dialog>
+
         <Tooltip target=".export-buttons>button" position="bottom" />
         <Accordion alwaysOpen defaultActiveKey={year.curr}>
           <Accordion.Item eventKey={year.curr}>

@@ -2,7 +2,6 @@ import React, { useContext, useEffect, useState, useRef } from 'react';
 import Sidebar from './components/Sidebar';
 import { useParams } from 'react-router-dom';
 import AuthCon from '../../context/AuthPro';
-import Table from 'react-bootstrap/Table';
 import AdminCon from '../../context/AdminPro';
 
 import { DataTable } from 'primereact/datatable';

@@ -84,7 +84,7 @@ function AttTable({ students, totalEventAtt, eventAtt }) {
 			onRowExpand={onRowExpand} onRowCollapse={onRowCollapse} rowExpansionTemplate={rowExpansionTemplate} reorderableColumns resizableColumns size='small' showGridlines stripedRows paginator rows={20} rowsPerPageOptions={[30, 50, 100, 200]} filterDisplay="row" emptyMessage="No Students found." removableSort sortField="name" sortOrder={1}>
 			<Column expander={allowExpansion} style={{ width: '5rem' }} />
 			<Column sortable filter filterMatchMode="contains" className='text-center' showFilterMenu={false} field="name" header="Name" />
-			<Column sortable filter filterMatchMode="contains" className='text-center' showFilterMenu={false} field="per" header="Toatl attendence" />
+			<Column sortable filter filterMatchMode="contains" className='text-center' showFilterMenu={false} field="per" header="Total attendence" />
 		</DataTable>
 	</>
 }
@@ -236,7 +236,6 @@ export default function MenteesTrainingAttendance() {
 							<p className="fs-2 fw-bolder m-0"> Mentees Training Attendance</p>
 							{students && att && totalAtt && <Att students={students} att={att} totalAtt={totalAtt} />}
 						</div>
-
 					</div >
 				</div >
 			</div >

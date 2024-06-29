@@ -12,8 +12,7 @@ require("dotenv").config();
 const LogDet = require("../../models/user/LogDet");
 const Student = require("../../models/user/Student");
 const Parent = require("../../models/user/Parent");
-const Mentor = require("../../models/user/Mentor");
-const ResetPsd = require("../../models/user/ResetPsd");
+const Mentor = require("../../models/mentor/Mentor");
 
 //use
 router.use(express.json());

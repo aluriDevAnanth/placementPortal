@@ -2,10 +2,10 @@ import React, { useContext, useState, useEffect } from 'react'
 import Sidebar from './components/Sidebar'
 import AuthCon from '../../context/AuthPro'
 import Search from './components/Search'
-import Table from 'react-bootstrap/Table';
 import MentorCon from '../../context/MentorPro'
 import { DataTable } from 'primereact/datatable';
 import { Column } from 'primereact/column';
+import { format, isAfter, isBefore, parseISO } from 'date-fns'
 
 export default function MentorHome() {
   const { students, year } = useContext(MentorCon)
@@ -29,16 +29,12 @@ export default function MentorHome() {
       });
       const res = await response.json();
       let q = [];
-      let w = [];
       res.data.forEach(qq => {
-        if (qq.arrival === 'expected') {
+        if (isBefore(new Date(), parseISO(qq.dateOfVisit))) {
           q.push(qq);
-        } else {
-          w.push(qq);
         }
       });
-      //console.log(w);
-      setCom([q, w]);
+      setCom(q);
     } catch (error) {
       console.error("Error fetching data:", error);
     }
@@ -80,11 +76,12 @@ export default function MentorHome() {
             {<Search mystyle={mystyle} students={students} />}
             <div className='bg-white p-3 rounded-3 mt-3'>
               <p className='fs-3 fw-bold  '>Excepted Companies</p>
-              <DataTable value={com[1]} className="p-datatable-striped p-datatable-hover text-center" showGridlines stripedRows paginator rows={10} rowsPerPageOptions={[25, 50]} sortField="name" sortOrder={1} removableSort filterDisplay="row" emptyMessage="No Company found." >
+              <DataTable value={com} className="p-datatable-striped p-datatable-hover text-center" showGridlines stripedRows paginator rows={10} rowsPerPageOptions={[25, 50]} sortField="name" sortOrder={1} removableSort filterDisplay="row" emptyMessage="No Company found." >
                 <Column className='text-center' field="name" header="Expected Company Name" sortable filter filterMatchMode="contains" />
                 <Column className='text-center' field="category" header="Type Of Company" sortable filter filterMatchMode="contains" />
-                <Column className='text-center' field="branch" header="Eligible Branch" sortable filter filterMatchMode="contains" />
-                <Column className='text-center' field="dateofvisit" header="Expected Date" sortable filter filterMatchMode="contains" />
+                <Column className='text-center' field="branches" header="Eligible Branch" sortable filter filterMatchMode="contains" body={data => <p>{data.branches.join(', ')}</p>} />
+                <Column className='text-center' field="dateOfVisit" header="Expected Date" sortable filter filterMatchMode="contains"
+                  body={data => <p>{format(parseISO(data.dateOfVisit), 'dd-MM-yyyy')}</p>} />
               </DataTable>
             </div>
           </div>

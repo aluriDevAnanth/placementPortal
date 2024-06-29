@@ -129,9 +129,6 @@ export default function Test() {
       }
 
       const res = await response.json();
-      /* jsonData.map(q => {
-        toast.current.show({ severity: 'info', summary: 'Attendence added', detail: `${q.rollno.length} students attendence added to ${q.name} for date ${q.date}`, life: 3000 });
-      }) */
     } catch (error) {
       console.error('Error uploading file:', error);
     }

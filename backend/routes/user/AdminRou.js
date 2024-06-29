@@ -1,35 +1,28 @@
 const express = require('express')
 const router = express.Router()
 const md5 = require('md5');
-var isemail = require('isemail');
 var jwt = require('jsonwebtoken');
-const { format, parse } = require('date-fns')
+const { format, parse, parseISO } = require('date-fns')
 const multer = require('multer');
-const xlsx = require('xlsx');
 const fs = require('fs');
-const ExcelJS = require('exceljs');
-const csvParser = require('csv-parser');
+const csv = require('csv-parser');
 
 const upload = multer({ dest: 'uploads/' });
 
 // Models 
 const LogDet = require('../../models/user/LogDet');
-const Student2 = require('../../models/user/Student1');
 const Student = require('../../models/user/Student');
 const Parent = require('../../models/user/Parent');
-const Mentor = require('../../models/user/Mentor');
-const Att = require('../../models/user/Att')
-const Schedule = require('../../models/user/Schedule')
-const PlacementCompany = require('../../models/user/PlacementCompany')
+const Mentor = require('../../models/mentor/Mentor');
+const Att = require('../../models/admin/Att')
+const Schedule = require('../../models/admin/Schedule')
 const MentorReview = require('../../models/mentor/MentorReview')
-const Event = require('../../models/user/Event');
-const PlacementCorner = require('../../models/user/PlacementCorner');
+const Event = require('../../models/admin/Event');
+const PlacementCorner = require('../../models/admin/PlacementCorner');
 const Ann = require('../../models/admin/Ann');
 
 //use
 router.use(express.json());
-
-let attToken = '';
 
 function isEventExpired(event) {
   const currentTime = new Date();
@@ -104,42 +97,6 @@ router.get('/getEvents', async (req, res) => {
     });
   }
 });
-
-/* router.get('/getRandomValue', async (req, res) => {
-  let token;
-  const authHeader = req.headers["authorization"];
-  if (authHeader !== undefined) {
-    token = authHeader.split(" ")[1];
-  }
-  if (token) {
-    try {
-      const { username, role } = jwt.verify(token, 'qwertyuiop');
-      if (role === "admin" || role === "coor") {
-        const randomValue = generateRandomString(50);
-        attToken = randomValue;
-        res.json({
-          success: true,
-          data: { randomValue }
-        });
-      } else {
-        res.status(403).json({
-          success: false,
-          error: 'wrong role'
-        });
-      }
-    } catch (error) {
-      res.status(401).json({
-        success: false,
-        error: 'invalid token'
-      });
-    }
-  } else {
-    res.status(400).json({
-      success: false,
-      error: 'missing token'
-    });
-  }
-}); */
 
 function generateTokens(classId) {
   const Sessiontokens = [];
@@ -315,7 +272,7 @@ router.post('/addBulkStu', upload.single('file'), async (req, res) => {
 
           const results = [];
           fs.createReadStream(file.path)
-            .pipe(csvParser())
+            .pipe(csv())
             .on('data', (data) => results.push(data))
             .on('end', async () => {
               const parentAccounts = [];
@@ -328,9 +285,9 @@ router.post('/addBulkStu', upload.single('file'), async (req, res) => {
                 const logExists = await LogDet.findOne({ username: i.rollno });
 
                 if (!logExists) {
-                  const q = { username: i.rollno, password: md5(i.rollno), role: "student" };
+                  const q = { username: i.rollno, password: md5(i.rollno), role: "student", deviceInfo: "" };
                   let rand = (Math.floor(Math.random() * 1000000) + 1).toString().trim();
-                  let p = { username: `${i.rollno}_parent`, password: md5(md5(`${i.rollno}_parent`)), role: "parent" };
+                  let p = { username: `${i.rollno}_parent`, password: md5(md5(`${i.rollno}_parent`)), role: "parent", deviceInfo: "" };
                   await LogDet.create(q);
                   let pp = await LogDet.create(p);
                   parentAccounts.push({ ...p, password: md5(`${i.rollno}_parent`) });
@@ -468,6 +425,49 @@ router.get('/getStu/:year', async (req, res) => {
   }
 });
 
+router.post('/getStuLogDet', async (req, res) => {
+  let token;
+  const authHeader = req.headers["authorization"];
+  if (authHeader !== undefined) token = authHeader.split(" ")[1];
+  try {
+    if (token) {
+      const { username, role } = jwt.verify(token, 'qwertyuiop');
+      if (role === "admin") {
+        const stu = await LogDet.find({ username: { $in: req.body.stu } })
+        res.json({ success: true, data: { stu } });
+      } else {
+        res.json({ success: false, error: 'wrong role' });
+      }
+
+    } else {
+      res.json({ success: false, error: 'wrong token' });
+    }
+  } catch (e) {
+    res.json({ success: false, error: 'internal error' });
+  }
+});
+
+router.post('/editStuLogDet', async (req, res) => {
+  let token;
+  const authHeader = req.headers["authorization"];
+  if (authHeader !== undefined) token = authHeader.split(" ")[1];
+  try {
+    if (token) {
+      const { username, role } = jwt.verify(token, 'qwertyuiop');
+      if (role === "admin") {
+        const stu = await LogDet.findOneAndUpdate({ username: req.body.stu.username }, req.body.stu, { new: true })
+        res.json({ success: true, data: { stu } });
+      } else {
+        res.json({ success: false, error: 'wrong role' });
+      }
+    } else {
+      res.json({ success: false, error: 'wrong token' });
+    }
+  } catch (e) {
+    res.json({ success: false, error: 'internal error' });
+  }
+});
+
 router.get('/getYears', async (req, res) => {
   try {
     //console.log(11);
@@ -504,32 +504,6 @@ router.post('/postMentorThroughEmail', async (req, res) => {
   }
   res.json({ success: true, data: { q } })
 })
-
-const xlsxToJson = async (filePath) => {
-  const workbook = new ExcelJS.Workbook();
-  await workbook.xlsx.readFile(filePath);
-
-  const allSheetsData = [];
-  workbook.eachSheet(sheet => {
-    const headerRow = sheet.getRow(1);
-    const headers = headerRow.values.map(value => value.toString().trim());
-
-    const jsonData = [];
-    sheet.eachRow((row, rowNumber) => {
-      if (rowNumber === 1) return;
-
-      const rowData = {};
-      headers.forEach((header, index) => {
-        rowData[header] = row.getCell(index).value;
-      });
-      jsonData.push(rowData);
-    });
-
-    allSheetsData.push(...jsonData);
-  });
-
-  return allSheetsData;
-};
 
 router.post("/markAtt", async (req, res) => {
   const { qr_data, rollno } = req.body;
@@ -658,10 +632,17 @@ router.post('/addCompBulk', upload.single('file'), async (req, res) => {
       return res.status(400).json({ success: false, error: 'No file uploaded' });
     }
 
-    // Read the uploaded Excel file and convert it to JSON
-    const jsonData = await xlsxToJson(file.path);
+    // Parse the CSV file and convert it to JSON
+    const jsonData = await new Promise((resolve, reject) => {
+      const results = [];
+      fs.createReadStream(file.path)
+        .pipe(csv())
+        .on('data', (data) => results.push(data))
+        .on('end', () => resolve(results))
+        .on('error', (err) => reject(err));
+    });
 
-    // Process the JSON data (if needed)
+
     jsonData.forEach(q => {
       ['eligibleStudents', 'appliedStudents', 'shortlistedStudents', 'onlineTest', 'GD', 'interview1', 'interview2', 'interview3', 'HR', 'otherStages', 'placedStudents'].forEach(h => {
         if (typeof q[h] === 'string') {
@@ -676,8 +657,9 @@ router.post('/addCompBulk', upload.single('file'), async (req, res) => {
 
     let comp = [];
 
-    jsonData.map(async q => {
-      stages = {
+    for (const q of jsonData) {
+      console.log('11', q);
+      let stages = {
         "onlineTest": {},
         "GD": {},
         "interview1": {},
@@ -687,43 +669,36 @@ router.post('/addCompBulk', upload.single('file'), async (req, res) => {
         "otherStages": {}
       }
 
-      let valid = Object.keys(stages).map(s => { return q[s] !== null && s }).filter(stage => stage !== false)
-      //console.log(q.name, valid[0], 'valid', valid);
+      let valid = Object.keys(stages).map(s => q[s].length > 0 && s).filter(stage => stage);
 
+      console.log(valid);
       if (valid.length !== 0) {
         for (let i of q.shortlistedStudents) {
           if (q[valid[0]].includes(i)) {
-            stages[valid[0]][i] = 'cleared'
+            stages[valid[0]][i] = 'cleared';
           } else {
-            stages[valid[0]][i] = 'not cleared'
+            stages[valid[0]][i] = 'not cleared';
           }
         }
 
         for (let i = 1; i < valid.length; i++) {
-          //console.log(q.name);
           for (let r of q[valid[i - 1]]) {
             if (q[valid[i]].includes(r)) {
-              stages[valid[i]][r] = 'cleared'
+              stages[valid[i]][r] = 'cleared';
             } else {
-              stages[valid[i]][r] = 'not cleared'
+              stages[valid[i]][r] = 'not cleared';
             }
           }
         }
       }
 
-      //console.log(q.name, valid[0], q[valid[0]], stages);
+      Object.keys(stages).forEach(s => {
+        if (!valid.includes(s) || Object.keys(stages[s]).length === 0) {
+          stages[s] = 'not applicable';
+        }
+      });
 
-      Object.keys(stages).map(s => {
-        if (!(valid.includes(s))) {
-          stages[s] = 'not applicable'
-        }
-        if (Object.keys(stages[s]).length === 0) {
-          stages[s] = 'not applicable'
-        }
-      })
-      q.stages = stages
-      //console.log(q.name, stages);
-      //console.log(q.name, 'stages', stages); 
+      q.stages = stages;
 
       if (await PlacementCorner.findOne({ name: q.name })) {
         let updatedDocument = await PlacementCorner.findOneAndUpdate({ name: q.name }, { ...q }, { new: true });
@@ -732,15 +707,13 @@ router.post('/addCompBulk', upload.single('file'), async (req, res) => {
         let newDocument = await PlacementCorner.create({ ...q, stages, stuFeed: {} });
         comp.push(newDocument);
       }
-    })
+    }
 
     res.json({ success: true, data: { comp, jsonData } });
 
     fs.unlink(file.path, (err) => {
       if (err) {
         console.error('Error deleting the file:', err);
-      } else {
-        //console.log('Uploaded file deleted successfully');
       }
     });
   } catch (error) {
@@ -808,11 +781,23 @@ router.post('/addAttBulk', upload.single('file'), async (req, res) => {
       return res.status(400).json({ success: false, error: 'No file uploaded' });
     }
 
-    const jsonData = await xlsxToJson(file.path);
+    // Function to parse CSV file
+    const csvToJson = (filePath) => {
+      return new Promise((resolve, reject) => {
+        const results = [];
+        fs.createReadStream(filePath)
+          .pipe(csv())
+          .on('data', (data) => results.push(data))
+          .on('end', () => resolve(results))
+          .on('error', (err) => reject(err));
+      });
+    };
 
-    jsonData.map(async eve => {
+    const jsonData = await csvToJson(file.path);
+
+    for (const eve of jsonData) {
       try {
-        eve.date = format(new Date(eve.date), 'dd-MM-yyyy');
+        //eve.date = format(parseISO(eve.date), 'dd-MM-yyyy');
         eve.rollno = eve.rollno.split('\n').map(rollno => rollno.trim());
         let curr = await Event.findOne({ name: eve.name });
 
@@ -826,22 +811,19 @@ router.post('/addAttBulk', upload.single('file'), async (req, res) => {
             curr.attendance[eve.date] = eve.rollno;
           }
           await Event.findOneAndUpdate({ name: eve.name }, { attendance: curr.attendance }, { new: true });
-          //console.log(`Attendance updated for event: ${eve.name}`);
         } else {
           console.log(`Event not found: ${eve.name}`);
         }
       } catch (error) {
         console.error(`Error updating attendance for event: ${eve.name}`, error);
       }
-    });
+    }
 
     res.json({ success: true, data: { jsonData } });
 
     fs.unlink(file.path, (err) => {
       if (err) {
         console.error('Error deleting the file:', err);
-      } else {
-        //console.log('Uploaded file deleted successfully');
       }
     });
   } catch (error) {
@@ -907,7 +889,7 @@ router.post('/addBulkTests', upload.single('file'), async (req, res) => {
     console.log(file);
     const jsonData = await new Promise((resolve, reject) => {
       const results = [];
-      fs.createReadStream(file.path).pipe(csvParser()).on('data', (row) => {
+      fs.createReadStream(file.path).pipe(csv()).on('data', (row) => {
         console.log(row);
         results.push({ name: row.name, rollno: row.rollno, att: row.att, aptitude: row.aptitude, coding: row.coding, others: row.others, date: parse(row.date, 'dd-MM-yyyy hh:mm aa', new Date()), batch: row.batch });
       }).on('end', () => { resolve(results); }).on('error', (error) => { reject(error); });
