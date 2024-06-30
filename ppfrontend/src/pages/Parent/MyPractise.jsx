@@ -20,7 +20,7 @@ export default function MyPractise() {
         },
       });
       const res = await response.json();
-      console.log(11, res);
+      //console.log(11, res);
       setPrac({ ...res.data });
       setLoad(false)
     } catch (error) {
@@ -39,7 +39,7 @@ export default function MyPractise() {
       <div>
         <Sidebar />
       </div>
-      {load ? <div className='w-100 d-flex justify-content-center align-items-center'> <Spinner animation="border" role="status">
+      {/* {load ? <div className='w-100 d-flex justify-content-center align-items-center'> <Spinner animation="border" role="status">
         <span className="visually-hidden">Loading...</span>
       </Spinner></div> : <div className='row w-100'>
         {Object.keys(prac).map((platform, i) => (
@@ -52,8 +52,7 @@ export default function MyPractise() {
             </ListGroup>
           </div>
         ))}
-      </div>}
-
+      </div>} */}
     </div>
   );
 }

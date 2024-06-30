@@ -57,13 +57,14 @@ export default function MentorRoute() {
               <Route path='/' element={<StudentHome />} />
               <Route path='/placementpolicy' element={<PlacementPolicy />} />
               <Route path='/studentattendence' element={<StudentAtt />} />
-              {/* <Route path='/myperformance' element={<MyPerformance />} />
+              <Route path='/myperformance' element={<MyPerformance />} />
               <Route path='/placementcorner' element={<PlacementCorner />} />
               <Route path='/mypractise' element={<MyPractise />} />
               <Route path='/alumnirep' element={<AlumniRep />} />
               <Route path='/revisionmaterial' element={<RevMat />} />
               <Route path='/studentfeedback' element={<StudentFeedback />} />
-              <Route path='/studentcompanyfeedback' element={<StuCompFeed SCF={SCF} completed={completed} setSCF={setSCF} fetchStuCompFeed={fetchStuCompFeed} />} /> */}
+              {/* <Route path='/companiescorner' element={<StudentCompaniesCorner />} /> */}
+              <Route path='/studentcompanyfeedback' element={<StuCompFeed SCF={SCF} completed={completed} setSCF={setSCF} fetchStuCompFeed={fetchStuCompFeed} />} />
               <Route path='/contactus' element={<ContactUs />} />
               <Route path='/settings' element={<Settings />} />
             </>

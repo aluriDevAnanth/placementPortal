@@ -863,7 +863,7 @@ router.post('/addSingleTest', async (req, res) => {
 
     if (role !== "admin") return res.json({ success: false, error: 'Wrong Role' });
 
-    console.log('addTests', req.body.test);
+    //console.log('addTests', req.body.test);
     const { test } = req.body;
 
     let q = await Schedule.create(test)

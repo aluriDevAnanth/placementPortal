@@ -11,7 +11,7 @@ export default function PlacementCorner() {
   const baseURL = process.env.BASE_URL
 
   async function fetchCompanies() {
-    const response = await fetch(`${baseURL}/student/setComp/${user.batch}`, {
+    const response = await fetch(`${baseURL}/student/getComp/${user.yearofpassing}`, {
       method: "GET",
       headers: {
         "Content-Type": "application/json",
@@ -19,13 +19,13 @@ export default function PlacementCorner() {
       },
     });
     const res = await response.json();
-    //console.log([...res.data.comp]);
+    console.log('res.data.comp', [...res.data.comp]);
     setCompany([...res.data.comp]);
   }
 
   async function fetchStudentPlacementProgress() {
     const rollno = [user.rollno];
-    const response = await fetch(`${baseURL}/mentor/getStudentPlacementProgress/${user.batch}`, {
+    const response = await fetch(`${baseURL}/mentor/getStudentPlacementProgress/${user.yearofpassing}`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
@@ -35,7 +35,7 @@ export default function PlacementCorner() {
     });
     const res = await response.json();
     setPP(res.data);
-    console.log(res.data);
+    //console.log(res.data);
   }
 
   useEffect(() => {
@@ -102,7 +102,9 @@ export default function PlacementCorner() {
               <th>Eligible Companies </th>
               <th>Applied Companies </th>
               <th>Shortlisted Companies </th>
-              <th>Online Test</th>
+              <th>Online Test 1</th>
+              <th>Online Test 2</th>
+              <th>Online Test 3</th>
               <th>GD</th>
               <th>Interview</th>
               <th>HR</th>
@@ -124,7 +126,9 @@ export default function PlacementCorner() {
                   <th>{PP?.shortlistedCompany[q?.rollno]?.length || 0}</th>
                   <th>{PP.stages[q.rollno]?.ot?.length || 0}</th>
                   <th>{PP.stages[q.rollno]?.gd?.length || 0}</th>
-                  <th>{PP.stages[q.rollno]?.inter?.length || 0}</th>
+                  <th>{PP.stages[q.rollno]?.inter1?.length || 0}</th>
+                  <th>{PP.stages[q.rollno]?.inter2?.length || 0}</th>
+                  <th>{PP.stages[q.rollno]?.inter3?.length || 0}</th>
                   <th>{PP.stages[q.rollno]?.hr?.length || 0}</th>
                   <th>{PP.stages[q.rollno]?.other?.length || 0}</th>
                   <th>{PP.placed[q.rollno]?.[0] ? "Placed" : "Not Placed"}</th>
@@ -144,11 +148,11 @@ export default function PlacementCorner() {
                 <th> Name </th>
                 <th> Job Role </th>
                 <th> CTC </th>
-                <th> Category</th>
+                <th> driveStatus</th>
+                <th>Mode Of Drive</th>
                 <th>Is Eligible</th>
                 <th>Is Applied</th>
                 <th>Is Shortlisted</th>
-                <th>Mode Of Drive</th>
                 <th>Online Test</th>
                 <th>GD</th>
                 <th>Interview</th>
@@ -160,11 +164,11 @@ export default function PlacementCorner() {
                 <th className='text_search'> Name </th>
                 <th className='text_search'> Job Role </th>
                 <th className='text_search'> CTC </th>
-                <th className='text_search'> Category</th>
+                <th className='text_search'> driveStatus</th>
+                <th className='text_search'>Mode Of Drive</th>
                 <th className='text_search'>Is Eligible</th>
                 <th className='text_search'>Is Applied</th>
                 <th className='text_search'>Is Shortlisted</th>
-                <th className='text_search'>Mode Of Drive</th>
                 <th className='text_search'>Online Test</th>
                 <th className='text_search'>GD</th>
                 <th className='text_search'>Interview</th>
@@ -174,16 +178,17 @@ export default function PlacementCorner() {
             </thead>
             <tbody>
               {company && user.rollno && company.map((q, i) => {
+                console.log(company);
                 return <tr className='text-center' key={i}>
                   <th>{i + 1}</th>
                   <th>{q.name}</th>
-                  <th>{q.jodRole}</th>
+                  <th>{q.jobRole}</th>
                   <th>{q.CTC}</th>
-                  <th>{q.category}</th>
+                  <th>{q.driveStatus}</th>
+                  <th>{q.modeOfDrive}</th>
                   <th>{q.eligibleStudents.includes(user.rollno) ? "Yes" : "No"}</th>
                   <th>{q.appliedStudents.includes(user.rollno) ? "Yes" : "No"}</th>
                   <th>{q.shortlistedStudents.includes(user.rollno) ? "Yes" : "No"}</th>
-                  <th>{q.modeOfDrive}</th>
                   <th> {q?.stages?.onlineTest?.[user.rollno]} </th>
                   <th> {q.stages.GD?.[user.rollno]} </th>
                   <th> {q.stages.interview?.[user.rollno]} </th>

@@ -43,7 +43,8 @@ export function ParentPro({ children }) {
           "Authorization": `Bearer ${auth}`,
         },
       });
-      const res = await response.json(); console.log(res);
+      const res = await response.json();
+      //console.log(res);
       if (res.data.role === 'dean' && localStorage.getItem('role')) {
         let q = { ...res.data.user, role: localStorage.getItem('role') }
         setUser(q)

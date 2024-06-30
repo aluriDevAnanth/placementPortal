@@ -22,7 +22,7 @@ export default function MenteesMail() {
             {sel && <div className='mb-3'>
               <div className='d-flex gap-2 align-items-center'>
                 <button onClick={() => { navigator.clipboard.writeText(sel.map(q => { return q.email }).join(', ')) }} className="btn btn-primary mb-2">Click to Copy to Clipboard</button>
-                <p>copy and paste these email into gmail TO field</p>
+                <p>copy and paste these email into gmail to field</p>
               </div>
               <p>{sel.map(q => { return q.email }).join(', ')}</p>
             </div>}

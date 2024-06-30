@@ -22,7 +22,7 @@ export default function ParentTestResult() {
     });
 
     const res = await response.json();
-    console.log(res)
+    //console.log(res)
     setSchedule(res.data)
   }
 

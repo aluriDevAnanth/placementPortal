@@ -83,7 +83,6 @@ export default function ParentCompaniesCorner() {
 
                     </tbody>
                   </table>
-
                 </div>
                 <div className="tab-pane fade bg-white p-3" id="VisitedCompanies" role="tabpanel" aria-labelledby="VisitedCompanies-tab" >
                   <table className="shadow table table-striped table-bordered">

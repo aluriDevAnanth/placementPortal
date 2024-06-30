@@ -5,18 +5,20 @@ import AuthCon from '../../context/AuthPro';
 export default function ParentTestResult() {
   const { user, auth } = useContext(AuthCon);
   const [schedule, setSchedule] = useState()
+  const baseURL = process.env.BASE_URL
+
   const mystyle = {
     backgroundColor: "#696747",
     color: "white",
   };
-  const baseURL = process.env.BASE_URL
 
   async function fetchSchedule() {
-    const response = await fetch(`${baseURL}/mentor/getSchedule/${user.batch}`, {
-      method: "GET",
+    const response = await fetch(`${baseURL}/mentor/getSchedule/${user.yearofpassing}`, {
+      method: "POST",
       headers: {
         "Content-Type": "application/json",
       },
+      body: JSON.stringify({ rollno: [user.rollno] })
     });
 
     const res = await response.json();
@@ -49,6 +51,7 @@ export default function ParentTestResult() {
     }
   }, [schedule]);
 
+
   return (
     user !== null && (
       <div className="bodyBG">
@@ -75,7 +78,7 @@ export default function ParentTestResult() {
                     <th className='text_search'>Date</th>
                   </tr>
                 </thead>
-                <tbody>
+                {/* <tbody>
                   {schedule.map((q, i) => {
                     return <tr key={i} className="text-center">
                       <td>{q.testno}</td>
@@ -85,7 +88,7 @@ export default function ParentTestResult() {
                       <td>{q.date}</td>
                     </tr>
                   })}
-                </tbody>
+                </tbody> */}
               </table>
             </div>}
           </div>

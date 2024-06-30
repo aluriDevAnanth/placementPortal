@@ -27,12 +27,12 @@ export default function MentorRoute() {
             <Route path='/' element={<MentorHome />} />
             <Route path='/menteestrainingattendance' element={<MenteesTrainingAttendance />} />
             <Route path='/settings' element={<MentorSettings />} />
-            {/* <Route path='/menteespractisedetails' element={<MenteesPractiseDetails />} />
+            <Route path='/menteespractisedetails' element={<MenteesPractiseDetails />} />
             <Route path='/studentprogress' element={<MenteeCompanyDashboard />} />
             <Route path='/testschedule' element={<TestSchedule />} />
             <Route path='/mentorfeedback' element={<MentorFeedback />} />
             <Route path='/companydetails' element={<CompanyDetails />} />
-            <Route path='/menteesmail' element={<MenteesMail />} /> */}
+            <Route path='/menteesmail' element={<MenteesMail />} />
           </Routes>
         )
       }
